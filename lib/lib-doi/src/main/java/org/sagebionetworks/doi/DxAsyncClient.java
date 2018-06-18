@@ -37,17 +37,17 @@ public class DxAsyncClient {
 		this.decay = decay;
 	}
 
-	public void resolve(final EzidDoi ezidDoi, final DxAsyncCallback callback) {
+	public void resolve(final DoiHandler doiHandler, final DxAsyncCallback callback) {
 
-		if (ezidDoi == null) {
-			throw new IllegalArgumentException("EZID DOI cannot be null.");
+		if (doiHandler == null) {
+			throw new IllegalArgumentException("DOI cannot be null.");
 		}
 		if (callback == null) {
 			throw new IllegalArgumentException("Callback cannot be null.");
 		}
 
 		// Validate the DOI string is in the correct format, e.g. 'doi:10.7303/syn1720822.1'
-		final String doiString = ezidDoi.getDoi();
+		final String doiString = doiHandler.getDoi();
 		if (doiString == null) {
 			throw new IllegalArgumentException("The DOI string cannot be null.");
 		}
@@ -66,14 +66,14 @@ public class DxAsyncClient {
 					String location = resolveWithRetries(doi);
 					long totalTime = System.currentTimeMillis() - start;
 					if (location == null) {
-						callback.onError(ezidDoi, new RuntimeException(
+						callback.onError(doiHandler, new RuntimeException(
 								"DOI " + doiString + " failed to resolve after "
 								+ totalTime + " seconds."));
 					} else {
-						callback.onSuccess(ezidDoi);
+						callback.onSuccess(doiHandler);
 					}
 				} catch (InterruptedException | IOException e) {
-					callback.onError(ezidDoi, e);
+					callback.onError(doiHandler, e);
 				}
 			}
 		});

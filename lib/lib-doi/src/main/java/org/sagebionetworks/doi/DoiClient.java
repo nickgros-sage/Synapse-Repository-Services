@@ -6,22 +6,22 @@ package org.sagebionetworks.doi;
 public interface DoiClient {
 
 	/**
-	 * Probes the EZID server status.
+	 * Probes the DOI provider server status.
 	 */
 	boolean isStatusOk();
 
 	/**
 	 * Gets the DOI metadata given the DOI string.
 	 */
-	EzidDoi get(EzidDoi ezidDoi);
+	DoiHandler get(DoiHandler doiHandler);
 
 	/**
 	 * Creates a new DOI from the supplied data.
 	 */
-	void create(EzidDoi ezidDoi);
+	void create(DoiHandler doiHandler);
 
 	/**
 	 * Updates with the DOI with the supplied data.
 	 */
-	void update(EzidDoi ezidDoi);
+	void update(DoiHandler doiHandler);
 }

@@ -3,11 +3,11 @@ package org.sagebionetworks.doi;
 /**
  * Callback handle for the asynchronous client.
  */
-public interface EzidAsyncCallback {
+public interface DoiAsyncCallback {
 
 	/** When the execution is successful. */
-	void onSuccess(EzidDoi ezidDoi);
+	void onSuccess(DoiHandler doiHandler);
 
 	/** When the execution fails with an error. */
-	void onError(EzidDoi ezidDoi, Exception e);
+	void onError(DoiHandler doiHandler, Exception e);
 }

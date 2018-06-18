@@ -2,11 +2,13 @@ package org.sagebionetworks.doi;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public class EzidAsyncClient implements DoiAsyncClient {
+@Component
+public class DoiAsyncClientImpl implements DoiAsyncClient {
 
-	@Override
-	public void create(final EzidDoi ezidDoi, final EzidAsyncCallback callback) {
+	public void create(final DoiHandler doiHandler, final DoiAsyncCallback callback) {
 		if (callback == null) {
 			throw new IllegalArgumentException("Callback handle must not be null.");
 		}
@@ -14,16 +16,15 @@ public class EzidAsyncClient implements DoiAsyncClient {
 			@Override
 			public void run() {
 				try {
-					ezidClient.create(ezidDoi);
-					callback.onSuccess(ezidDoi);
+					doiClient.create(doiHandler);
+					callback.onSuccess(doiHandler);
 				} catch (Exception e) {
-					callback.onError(ezidDoi, e);
+					callback.onError(doiHandler, e);
 				}
 			}});
 	}
 
-	@Override
-	public void update(final EzidDoi doi, final EzidAsyncCallback callback) {
+	public void update(final DoiHandler doiHandler, final DoiAsyncCallback callback) {
 		if (callback == null) {
 			throw new IllegalArgumentException("Callback handle must not be null.");
 		}
@@ -31,10 +32,10 @@ public class EzidAsyncClient implements DoiAsyncClient {
 			@Override
 			public void run() {
 				try {
-					ezidClient.update(doi);
-					callback.onSuccess(doi);
+					doiClient.update(doiHandler);
+					callback.onSuccess(doiHandler);
 				} catch (Exception e) {
-					callback.onError(doi, e);
+					callback.onError(doiHandler, e);
 				}
 			}});
 	}
@@ -43,5 +44,7 @@ public class EzidAsyncClient implements DoiAsyncClient {
 	// the blocking client must also use a pool of connections.
 	// The blocking client currently uses SingleClientConnManager.
 	private final ExecutorService executor = Executors.newFixedThreadPool(1);
-	private final EzidClient ezidClient = new EzidClient();
+
+	@Autowired
+	private DoiClient doiClient;
 }

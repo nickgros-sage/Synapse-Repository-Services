@@ -9,7 +9,7 @@ import java.net.URLEncoder;
 /**
  * EZID metadata stored with the DOI.
  */
-public class EzidMetadata {
+public class EzidMetadata implements DoiMetadata {
 
 	public String getTitle() {
 		if (title == null || title.isEmpty()) {

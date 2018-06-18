@@ -21,10 +21,12 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.sagebionetworks.repo.model.doi.Doi;
+import org.springframework.stereotype.Component;
 
 /**
  * EZID DOI client.
  */
+@Component
 public class EzidClient implements DoiClient {
 
 	private static final String REALM = "EZID";
@@ -53,7 +55,6 @@ public class EzidClient implements DoiClient {
 		readClient = new RetryableHttpClient(httpClientR);
 	}
 
-	@Override
 	public boolean isStatusOk() {
 		URI uri = URI.create(EzidConstants.EZID_URL + "status");
 		HttpGet get = new HttpGet(uri);
@@ -68,17 +69,16 @@ public class EzidClient implements DoiClient {
 		}
 	}
 
-	@Override
-	public EzidDoi get(final EzidDoi ezidDoi) {
+	public DoiHandler get(final DoiHandler doiHandler) {
 
-		if (ezidDoi == null) {
+		if (doiHandler == null) {
 			throw new IllegalArgumentException("EZID DOI cannot be null.");
 		}
-		final String doi = ezidDoi.getDoi();
+		final String doi = doiHandler.getDoi();
 		if (doi == null) {
 			throw new IllegalArgumentException("DOI string cannot be null.");
 		}
-		final Doi doiDto = ezidDoi.getDto();
+		final Doi doiDto = doiHandler.getDto();
 		if (doiDto == null) {
 			throw new IllegalArgumentException("DOI DTO cannot be null.");
 		}
@@ -105,7 +105,7 @@ public class EzidClient implements DoiClient {
 			throw new RuntimeException(error);
 		}
 
-		EzidDoi result = new EzidDoi();
+		EzidDoiHandler result = new EzidDoiHandler();
 		result.setDoi(doi);
 		result.setDto(doiDto);
 		EzidMetadata metadata = new EzidMetadata();
@@ -114,18 +114,17 @@ public class EzidClient implements DoiClient {
 		return result;
 	}
 
-	@Override
-	public void create(final EzidDoi ezidDoi) {
+	public void create(final DoiHandler doiHandler) {
 
-		if (ezidDoi == null) {
+		if (doiHandler == null) {
 			throw new IllegalArgumentException("DOI cannot be null.");
 		}
 
-		URI uri = URI.create(EzidConstants.EZID_URL + "id/" + ezidDoi.getDoi());
+		URI uri = URI.create(EzidConstants.EZID_URL + "id/" + doiHandler.getDoi());
 		HttpPut put = new HttpPut(uri);
 		try {
 			StringEntity requestEntity = new StringEntity(
-					ezidDoi.getMetadata().getMetadataAsString(), HTTP.PLAIN_TEXT_TYPE, "UTF-8");
+					doiHandler.getMetadata().getMetadataAsString(), HTTP.PLAIN_TEXT_TYPE, "UTF-8");
 			put.setEntity(requestEntity);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e.getMessage(), e);
@@ -148,10 +147,10 @@ public class EzidClient implements DoiClient {
 					return;
 				}
 				try {
-					get(ezidDoi);
+					get(doiHandler);
 					return; // Already exists
 				} catch (RuntimeException e) {
-					String error = "DOI " + ezidDoi.getDoi();
+					String error = "DOI " + doiHandler.getDoi();
 					error += " got 400 BAD_REQUEST but does not already exits.";
 					throw new RuntimeException(error);
 				}
@@ -162,18 +161,17 @@ public class EzidClient implements DoiClient {
 		}
 	}
 
-	@Override
-	public void update(EzidDoi ezidDoi) {
+	public void update(DoiHandler doiHandler) {
 
-		if (ezidDoi == null) {
+		if (doiHandler == null) {
 			throw new IllegalArgumentException("DOI cannot be null.");
 		}
 
-		URI uri = URI.create(EzidConstants.EZID_URL + "id/" + ezidDoi.getDoi());
+		URI uri = URI.create(EzidConstants.EZID_URL + "id/" + doiHandler.getDoi());
 		HttpPost post = new HttpPost(uri);
 		try {
 			StringEntity requestEntity = new StringEntity(
-					ezidDoi.getMetadata().getMetadataAsString(),
+					doiHandler.getMetadata().getMetadataAsString(),
 					HTTP.PLAIN_TEXT_TYPE, "UTF-8");
 			post.setEntity(requestEntity);
 		} catch (UnsupportedEncodingException e) {

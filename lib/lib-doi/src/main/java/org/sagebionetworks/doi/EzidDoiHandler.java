@@ -2,7 +2,7 @@ package org.sagebionetworks.doi;
 
 import org.sagebionetworks.repo.model.doi.Doi;
 
-public class EzidDoi {
+public class EzidDoiHandler implements DoiHandler {
 
 	public Doi getDto() {
 		if (dto == null) {
@@ -32,14 +32,14 @@ public class EzidDoi {
 		this.doi = doi;
 	}
 
-	public EzidMetadata getMetadata() {
+	public DoiMetadata getMetadata() {
 		if (metadata == null) {
 			throw new NullPointerException("Missing metadata. Metadata is required");
 		}
 		return metadata;
 	}
 
-	public void setMetadata(EzidMetadata metadata) {
+	public void setMetadata(DoiMetadata metadata) {
 		if (metadata == null) {
 			throw new IllegalArgumentException("Missing metadata. Metadata is required");
 		}
@@ -48,5 +48,5 @@ public class EzidDoi {
 
 	private Doi dto;
     private String doi;
-    private EzidMetadata metadata;
+    private DoiMetadata metadata;
 }

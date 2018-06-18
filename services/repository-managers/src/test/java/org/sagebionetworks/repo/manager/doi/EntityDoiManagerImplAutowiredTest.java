@@ -84,7 +84,7 @@ public class EntityDoiManagerImplAutowiredTest {
 			Object target = ((Advised)manager).getTargetSource().getTarget();
 			manager = (EntityDoiManagerImpl)target;
 		}
-		ReflectionTestUtils.setField(manager, "ezidAsyncClient", mockEzidClient);
+		ReflectionTestUtils.setField(manager, "doiAsyncClient", mockEzidClient);
 		ReflectionTestUtils.setField(manager, "dxAsyncClient", mockDxClient);
 		adminUserInfo = userManager.getUserInfo(BOOTSTRAP_PRINCIPAL.THE_ADMIN_USER.getPrincipalId());
 	}

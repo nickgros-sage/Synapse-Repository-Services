@@ -2,8 +2,7 @@ package org.sagebionetworks.repo.manager.doi;
 
 import org.sagebionetworks.doi.DxAsyncCallback;
 import org.sagebionetworks.doi.DxAsyncClient;
-import org.sagebionetworks.doi.EzidDoi;
-
+import org.sagebionetworks.doi.DoiHandler;
 public class MockDxAsyncClient extends DxAsyncClient {
 
 	private final long delay;
@@ -13,13 +12,13 @@ public class MockDxAsyncClient extends DxAsyncClient {
 	}
 
 	@Override
-	public void resolve(final EzidDoi ezidDoi, final DxAsyncCallback callback) {
+	public void resolve(final DoiHandler doiHandler, final DxAsyncCallback callback) {
 		Thread thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					Thread.sleep(delay);
-					callback.onSuccess(ezidDoi);
+					callback.onSuccess(doiHandler);
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e.getMessage(), e);
 				}

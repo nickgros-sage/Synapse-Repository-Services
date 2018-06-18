@@ -20,7 +20,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 import org.junit.Test;
-import org.sagebionetworks.StackConfiguration;
 import org.sagebionetworks.StackConfigurationSingleton;
 import org.sagebionetworks.repo.model.doi.Doi;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -91,13 +90,13 @@ public class EzidClientTest {
 		when(mockWriteClient.executeWithRetry(any(HttpUriRequest.class))).thenReturn(mockResponse);
 		EzidClient client = new EzidClient();
 		ReflectionTestUtils.setField(client, "writeClient", mockWriteClient);
-		EzidDoi ezidDoi = new EzidDoi();
-		ezidDoi.setDoi("doi:1093.3/sth");
-		ezidDoi.setDto(new Doi());
+		EzidDoiHandler ezidDoiHandler = new EzidDoiHandler();
+		ezidDoiHandler.setDoi("doi:1093.3/sth");
+		ezidDoiHandler.setDto(new Doi());
 		EzidMetadata mockMetadata = mock(EzidMetadata.class);
 		when(mockMetadata.getMetadataAsString()).thenReturn("metadata");
-		ezidDoi.setMetadata(mockMetadata);
-		client.create(ezidDoi);
+		ezidDoiHandler.setMetadata(mockMetadata);
+		client.create(ezidDoiHandler);
 
 		// Mock 400 BAD_REQUEST "identifier already exists"
 		mockResponse = mock(HttpResponse.class);
@@ -109,7 +108,7 @@ public class EzidClientTest {
 		when(mockWriteClient.executeWithRetry(any(HttpUriRequest.class))).thenReturn(mockResponse);
 		client = new EzidClient();
 		ReflectionTestUtils.setField(client, "writeClient", mockWriteClient);
-		client.create(ezidDoi);
+		client.create(ezidDoiHandler);
 
 		// Mock 400 BAD_REQUEST and get()
 		// Mock write client
@@ -131,6 +130,6 @@ public class EzidClientTest {
 		client = new EzidClient();
 		ReflectionTestUtils.setField(client, "writeClient", mockWriteClient);
 		ReflectionTestUtils.setField(client, "readClient", mockReadClient);
-		client.create(ezidDoi);
+		client.create(ezidDoiHandler);
 	}
 }

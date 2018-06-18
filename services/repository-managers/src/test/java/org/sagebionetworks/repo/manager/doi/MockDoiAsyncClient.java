@@ -1,8 +1,8 @@
 package org.sagebionetworks.repo.manager.doi;
 
 import org.sagebionetworks.doi.DoiAsyncClient;
-import org.sagebionetworks.doi.EzidAsyncCallback;
-import org.sagebionetworks.doi.EzidDoi;
+import org.sagebionetworks.doi.DoiAsyncCallback;
+import org.sagebionetworks.doi.DoiHandler;
 
 public class MockDoiAsyncClient implements DoiAsyncClient {
 
@@ -13,13 +13,13 @@ public class MockDoiAsyncClient implements DoiAsyncClient {
 	}
 
 	@Override
-	public void create(final EzidDoi ezidDoi, final EzidAsyncCallback callback) {
+	public void create(final DoiHandler doi, final DoiAsyncCallback callback) {
 		Thread thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					Thread.sleep(delay);
-					callback.onSuccess(ezidDoi);
+					callback.onSuccess(doi);
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e.getMessage(), e);
 				}
@@ -29,13 +29,13 @@ public class MockDoiAsyncClient implements DoiAsyncClient {
 	}
 
 	@Override
-	public void update(final EzidDoi ezidDoi, final EzidAsyncCallback callback) {
+	public void update(final DoiHandler doi, final DoiAsyncCallback callback) {
 		Thread thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					Thread.sleep(delay);
-					callback.onSuccess(ezidDoi);
+					callback.onSuccess(doi);
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e.getMessage(), e);
 				}
