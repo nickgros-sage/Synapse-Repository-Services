@@ -10,24 +10,30 @@ import static org.mockito.Mockito.when;
 
 import org.apache.http.HttpStatus;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.sagebionetworks.repo.model.doi.Doi;
 import org.sagebionetworks.simpleHttpClient.SimpleHttpClient;
 import org.sagebionetworks.simpleHttpClient.SimpleHttpRequest;
 import org.sagebionetworks.simpleHttpClient.SimpleHttpResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = { "classpath:doi-test-configuration.xml" })
 public class DxAsyncClientTest {
+
+	@Autowired DoiHandler doiHandler;
+	@Autowired DoiMetadata doiMetadata;
 
 	@Test
 	public void testRedirect() throws Exception {
-
-		final EzidDoi ezidDoi = new EzidDoi();
 		final Doi dto = new Doi();
-		ezidDoi.setDto(dto);
+		doiHandler.setDto(dto);
 		final String doi = "doi:10.7303/syn111";
-		ezidDoi.setDoi(doi);
-		final EzidMetadata metadata = new EzidMetadata();
-		ezidDoi.setMetadata(metadata);
+		doiHandler.setDoi(doi);
+		doiHandler.setMetadata(doiMetadata);
 
 		// Mock 303 -- 303 See Other is the expected redirect response
 		SimpleHttpResponse mockResponse = mock(SimpleHttpResponse.class);
@@ -54,21 +60,19 @@ public class DxAsyncClientTest {
 		ReflectionTestUtils.setField(dxClient, "decay", 30L);
 
 		DxAsyncCallback callback = mock(DxAsyncCallback.class);
-		dxClient.resolve(ezidDoi, callback);
+		dxClient.resolve(doiHandler, callback);
 		Thread.sleep(1000L);
-		verify(callback).onSuccess(ezidDoi);
+		verify(callback).onSuccess(doiHandler);
 	}
 
 	@Test
 	public void testNotFound() throws Exception {
 
-		final EzidDoi ezidDoi = new EzidDoi();
 		final Doi dto = new Doi();
-		ezidDoi.setDto(dto);
+		doiHandler.setDto(dto);
 		final String doi = "doi:10.7303/syn111";
-		ezidDoi.setDoi(doi);
-		final EzidMetadata metadata = new EzidMetadata();
-		ezidDoi.setMetadata(metadata);
+		doiHandler.setDoi(doi);
+		doiHandler.setMetadata(doiMetadata);
 
 		// Mock 404
 		SimpleHttpResponse mockResponse = mock(SimpleHttpResponse.class);
@@ -83,51 +87,47 @@ public class DxAsyncClientTest {
 		ReflectionTestUtils.setField(dxClient, "decay", 30L);
 
 		DxAsyncCallback callback = mock(DxAsyncCallback.class);
-		dxClient.resolve(ezidDoi, callback);
+		dxClient.resolve(doiHandler, callback);
 		Thread.sleep(1000L);
-		verify(callback).onError(same(ezidDoi), any(RuntimeException.class));
+		verify(callback).onError(same(doiHandler), any(RuntimeException.class));
 		verify(mockClient, times(4)).get(any(SimpleHttpRequest.class));
 	}
 
 	@Test(expected=IllegalArgumentException.class)
-	public void testNullEzidDoi() {
+	public void testNullDoi() {
 		DxAsyncClient dxClient = new DxAsyncClient();
 		dxClient.resolve(null, new DxAsyncCallback() {
 			@Override
-			public void onSuccess(EzidDoi ezidDoi) {}
+			public void onSuccess(DoiHandler doi) {}
 			@Override
-			public void onError(EzidDoi ezidDoi, Exception e) {}
+			public void onError(DoiHandler doi, Exception e) {}
 		});
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testNullCallback() {
-		final EzidDoi ezidDoi = new EzidDoi();
 		final Doi dto = new Doi();
-		ezidDoi.setDto(dto);
+		doiHandler.setDto(dto);
 		final String doi = "doi:10.7303/syn1720822.1";
-		ezidDoi.setDoi(doi);
-		final EzidMetadata metadata = new EzidMetadata();
-		ezidDoi.setMetadata(metadata);
+		doiHandler.setDoi(doi);
+		doiHandler.setMetadata(doiMetadata);
 		DxAsyncClient dxClient = new DxAsyncClient();
-		dxClient.resolve(ezidDoi, null);
+		dxClient.resolve(doiHandler, null);
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testInvalidDoiString() {
-		final EzidDoi ezidDoi = new EzidDoi();
 		final Doi dto = new Doi();
-		ezidDoi.setDto(dto);
+		doiHandler.setDto(dto);
 		final String doi = "10.7303/syn1720822.1";
-		ezidDoi.setDoi(doi);
-		final EzidMetadata metadata = new EzidMetadata();
-		ezidDoi.setMetadata(metadata);
+		doiHandler.setDoi(doi);
+		doiHandler.setMetadata(doiMetadata);
 		DxAsyncClient dxClient = new DxAsyncClient();
-		dxClient.resolve(ezidDoi, new DxAsyncCallback() {
+		dxClient.resolve(doiHandler, new DxAsyncCallback() {
 			@Override
-			public void onSuccess(EzidDoi ezidDoi) {}
+			public void onSuccess(DoiHandler doi) {}
 			@Override
-			public void onError(EzidDoi ezidDoi, Exception e) {}
+			public void onError(DoiHandler doi, Exception e) {}
 		});
 	}
 

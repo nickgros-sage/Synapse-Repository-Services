@@ -305,6 +305,18 @@
 	<bean id="entityDoiManager" class="org.sagebionetworks.repo.manager.doi.EntityDoiManagerImpl" 
 		scope="singleton" />
 
+	<bean id="doiHandler" class="org.sagebionetworks.doi.EzidDoiHandler"
+		  scope="singleton" />
+
+	<bean id="doiMetadata" class="org.sagebionetworks.doi.EzidMetadata"
+		  scope="singleton" />
+
+	<bean id="doiClient" class="org.sagebionetworks.doi.EzidClient"
+		  scope="singleton" />
+
+	<bean id="doiAsyncClient" class="org.sagebionetworks.doi.DoiAsyncClientImpl"
+		  scope="singleton" />
+
 	<bean id="doiAdminManager" class="org.sagebionetworks.repo.manager.doi.DoiAdminManagerImpl" 
 		scope="singleton" />
 

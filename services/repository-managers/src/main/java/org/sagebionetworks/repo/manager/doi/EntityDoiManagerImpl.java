@@ -4,14 +4,8 @@ import java.util.Calendar;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.sagebionetworks.doi.*;
 import org.sagebionetworks.doi.DoiAsyncClient;
-import org.sagebionetworks.doi.DxAsyncCallback;
-import org.sagebionetworks.doi.DxAsyncClient;
-import org.sagebionetworks.doi.EzidAsyncCallback;
-import org.sagebionetworks.doi.EzidAsyncClient;
-import org.sagebionetworks.doi.EzidConstants;
-import org.sagebionetworks.doi.EzidDoi;
-import org.sagebionetworks.doi.EzidMetadata;
 import org.sagebionetworks.repo.manager.AuthorizationManager;
 import org.sagebionetworks.repo.manager.AuthorizationManagerUtil;
 import org.sagebionetworks.repo.manager.UserManager;
@@ -37,11 +31,13 @@ public class EntityDoiManagerImpl implements EntityDoiManager {
 	@Autowired private AuthorizationManager authorizationManager;
 	@Autowired private DoiDao doiDao;
 	@Autowired private NodeDAO nodeDao;;
-	private final DoiAsyncClient ezidAsyncClient;
+	@Autowired private DoiAsyncClient doiAsyncClient;
+	@Autowired private DoiHandler doiHandler;
+	@Autowired private DoiMetadata metadata;
+
 	private final DxAsyncClient dxAsyncClient;
 
 	public EntityDoiManagerImpl() {
-		ezidAsyncClient = new EzidAsyncClient();
 		dxAsyncClient = new DxAsyncClient();
 	}
 
@@ -90,16 +86,14 @@ public class EntityDoiManagerImpl implements EntityDoiManager {
 		}
 
 		// Create DOI string
-		EzidDoi ezidDoi = new EzidDoi();
-		ezidDoi.setDto(doiDto);
+		doiHandler.setDto(doiDto);
 		String doi = EzidConstants.DOI_PREFIX + entityId;
 		if (versionNumber != null) {
 			doi = doi + "." + versionNumber;
 		}
-		ezidDoi.setDoi(doi);
+		doiHandler.setDoi(doi);
 
 		// Create DOI metadata.
-		EzidMetadata metadata = new EzidMetadata();
 		String creatorName = EzidConstants.DEFAULT_CREATOR;
 		metadata.setCreator(creatorName);
 		final int year = Calendar.getInstance().get(Calendar.YEAR);
@@ -111,13 +105,13 @@ public class EntityDoiManagerImpl implements EntityDoiManager {
 		}
 		metadata.setTarget(target);
 		metadata.setTitle(node.getName());
-		ezidDoi.setMetadata(metadata);
+		doiHandler.setMetadata(metadata);
 
 		// Call EZID to create the DOI
-		ezidAsyncClient.create(ezidDoi, new EzidAsyncCallback() {
+		doiAsyncClient.create(doiHandler, new DoiAsyncCallback() {
 
 			@Override
-			public void onSuccess(EzidDoi doi) {
+			public void onSuccess(DoiHandler doi) {
 				assert doi != null;
 				try {
 					Doi dto = doi.getDto();
@@ -131,7 +125,7 @@ public class EntityDoiManagerImpl implements EntityDoiManager {
 			}
 
 			@Override
-			public void onError(EzidDoi doi, Exception e) {
+			public void onError(DoiHandler doi, Exception e) {
 				assert doi != null;
 				try {
 					logger.error(e.getMessage(), e);
@@ -147,12 +141,12 @@ public class EntityDoiManagerImpl implements EntityDoiManager {
 		});
 
 		// Now calls the DOI resolution service to check if the DOI is ready for use
-		dxAsyncClient.resolve(ezidDoi, new DxAsyncCallback() {
+		dxAsyncClient.resolve(doiHandler, new DxAsyncCallback() {
 
 			@Override
-			public void onSuccess(EzidDoi ezidDoi) {
+			public void onSuccess(DoiHandler doiHandler) {
 				try {
-					Doi doiDto = ezidDoi.getDto();
+					Doi doiDto = doiHandler.getDto();
 					doiDto = doiDao.getDoi(doiDto.getObjectId(), doiDto.getObjectType(),
 							doiDto.getObjectVersion());
 					doiDao.updateDoiStatus(doiDto.getObjectId(),
@@ -166,7 +160,7 @@ public class EntityDoiManagerImpl implements EntityDoiManager {
 			}
 
 			@Override
-			public void onError(EzidDoi ezidDoi, Exception e) {
+			public void onError(DoiHandler doiHandler, Exception e) {
 				logger.error(e.getMessage(), e);
 			}
 		});
