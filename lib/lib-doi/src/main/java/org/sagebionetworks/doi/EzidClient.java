@@ -105,7 +105,7 @@ public class EzidClient implements DoiClient {
 			throw new RuntimeException(error);
 		}
 
-		EzidDoiHandler result = new EzidDoiHandler();
+		DoiHandler result = new DoiHandler();
 		result.setDoi(doi);
 		result.setDto(doiDto);
 		EzidMetadata metadata = new EzidMetadata();

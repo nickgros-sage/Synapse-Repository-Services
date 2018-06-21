@@ -20,7 +20,7 @@ public class DoiAsyncClientTest {
 		DoiClient doiClient = mock(DoiClient.class);
 		ReflectionTestUtils.setField(asyncClient, "doiClient", doiClient);
 
-		EzidDoiHandler doi = mock(EzidDoiHandler.class);
+		DoiHandler doi = mock(DoiHandler.class);
 		DoiAsyncCallback callback = mock(DoiAsyncCallback.class);
 		asyncClient.create(doi, callback);
 

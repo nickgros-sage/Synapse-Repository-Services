@@ -17,10 +17,9 @@
     <!-- Turn on Spring's autoproxy using AspectJ's @Aspect annotations. -->
     <!-- <aop:aspectj-autoproxy /> -->
 
-
+    <bean id="doiHandler" class="org.sagebionetworks.doi.DoiHandler" />
     <bean id="doiClient" class="org.sagebionetworks.doi.EzidClient" />
     <bean id="asyncClient" class="org.sagebionetworks.doi.DoiAsyncClientImpl" />
-    <bean id="doiHandler" class="org.sagebionetworks.doi.EzidDoiHandler" />
     <bean id="doiMetadata" class="org.sagebionetworks.doi.EzidMetadata" />
 
 

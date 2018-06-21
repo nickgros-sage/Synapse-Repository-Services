@@ -6,69 +6,69 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sagebionetworks.repo.model.doi.Doi;
 
-public class EzidDoiHandlerTest {
+public class DoiHandlerTest {
 
-	private EzidDoiHandler ezidDoiHandler;
+	private DoiHandler DoiHandler;
 	private final Doi doiDto = new Doi();
 	private final String doi = "doi:10.9999/test.1234567";
 	private final EzidMetadata metadata = new EzidMetadata();
 
 	@Before
 	public void before() {
-		ezidDoiHandler = new EzidDoiHandler();
-		ezidDoiHandler.setDto(doiDto);
-		ezidDoiHandler.setDoi(doi);
-		ezidDoiHandler.setMetadata(metadata);
+		DoiHandler = new DoiHandler();
+		DoiHandler.setDto(doiDto);
+		DoiHandler.setDoi(doi);
+		DoiHandler.setMetadata(metadata);
 	}
 
 	@Test
 	public void testGetSet() {
-		assertEquals(doiDto, ezidDoiHandler.getDto());
+		assertEquals(doiDto, DoiHandler.getDto());
 		Doi doiDto = new Doi();
-		ezidDoiHandler.setDto(doiDto);
-		assertEquals(doiDto, ezidDoiHandler.getDto());
-		assertEquals(doi, ezidDoiHandler.getDoi());
-		assertEquals(metadata, ezidDoiHandler.getMetadata());
-		ezidDoiHandler.setDoi("doi");
-		assertEquals("doi", ezidDoiHandler.getDoi());
+		DoiHandler.setDto(doiDto);
+		assertEquals(doiDto, DoiHandler.getDto());
+		assertEquals(doi, DoiHandler.getDoi());
+		assertEquals(metadata, DoiHandler.getMetadata());
+		DoiHandler.setDoi("doi");
+		assertEquals("doi", DoiHandler.getDoi());
 		EzidMetadata metadata = new EzidMetadata();
-		ezidDoiHandler.setMetadata(metadata);
-		assertEquals(metadata, ezidDoiHandler.getMetadata());
+		DoiHandler.setMetadata(metadata);
+		assertEquals(metadata, DoiHandler.getMetadata());
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testRequriedSetDto() {
-		EzidDoiHandler doi = new EzidDoiHandler();
+		DoiHandler doi = new DoiHandler();
 		doi.setDto(null);
 	}
 
 	@Test(expected=NullPointerException.class)
 	public void testRequriedGetDto() {
-		EzidDoiHandler doi = new EzidDoiHandler();
+		DoiHandler doi = new DoiHandler();
 		doi.getDto();
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testRequriedSetDoi() {
-		EzidDoiHandler doi = new EzidDoiHandler();
+		DoiHandler doi = new DoiHandler();
 		doi.setDoi(null);
 	}
 
 	@Test(expected=NullPointerException.class)
 	public void testRequriedGetDoi() {
-		EzidDoiHandler doi = new EzidDoiHandler();
+		DoiHandler doi = new DoiHandler();
 		doi.getDoi();
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testRequriedSetMetadata() {
-		EzidDoiHandler doi = new EzidDoiHandler();
+		DoiHandler doi = new DoiHandler();
 		doi.setMetadata(null);
 	}
 
 	@Test(expected=NullPointerException.class)
 	public void testRequriedGetMetadata() {
-		EzidDoiHandler doi = new EzidDoiHandler();
+		DoiHandler doi = new DoiHandler();
 		doi.getMetadata();
 	}
 }

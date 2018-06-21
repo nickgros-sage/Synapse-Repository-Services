@@ -90,7 +90,7 @@ public class EzidClientTest {
 		when(mockWriteClient.executeWithRetry(any(HttpUriRequest.class))).thenReturn(mockResponse);
 		EzidClient client = new EzidClient();
 		ReflectionTestUtils.setField(client, "writeClient", mockWriteClient);
-		EzidDoiHandler ezidDoiHandler = new EzidDoiHandler();
+		DoiHandler ezidDoiHandler = new DoiHandler();
 		ezidDoiHandler.setDoi("doi:1093.3/sth");
 		ezidDoiHandler.setDto(new Doi());
 		EzidMetadata mockMetadata = mock(EzidMetadata.class);
