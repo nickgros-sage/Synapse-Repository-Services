@@ -22,9 +22,13 @@ import org.apache.http.params.CoreProtocolPNames;
 import org.junit.Test;
 import org.sagebionetworks.StackConfigurationSingleton;
 import org.sagebionetworks.repo.model.doi.Doi;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class EzidClientTest {
+
+	@Autowired
+	DoiClient doiClient;
 
 	@Test
 	public void testConstructor() throws Exception {
@@ -78,8 +82,36 @@ public class EzidClientTest {
 	}
 
 	@Test
-	public void testCreateGet() throws Exception {
+	public void testGet() throws Exception {
+		//Mock 200 OK (successful retrieval)
+		DoiHandler doiHandler = new DoiHandler();
+		doiHandler.setDoi("doi:1093.3/sth");
+		doiHandler.setDto(new Doi());
+		EzidMetadata mockMetadata = mock(EzidMetadata.class);
+		when(mockMetadata.getMetadataAsString()).thenReturn("metadata");
+		doiHandler.setMetadata(mockMetadata);
 
+		// Mock 400 BAD_REQUEST
+		HttpResponse mockResponse = mock(HttpResponse.class);
+		when(mockResponse.getEntity()).thenReturn(new StringEntity("bad request"));
+		StatusLine mockStatusLine = mock(StatusLine.class);
+		when(mockStatusLine.getStatusCode()).thenReturn(HttpStatus.SC_BAD_REQUEST);
+		when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
+		// Mock read client
+		mockResponse = mock(HttpResponse.class);
+		when(mockResponse.getEntity()).thenReturn(new StringEntity("OK"));
+		mockStatusLine = mock(StatusLine.class);
+		when(mockStatusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
+		when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
+		RetryableHttpClient mockReadClient = mock(RetryableHttpClient.class);
+		when(mockReadClient.executeWithRetry(any(HttpUriRequest.class))).thenReturn(mockResponse);
+		EzidClient client = new EzidClient();
+		ReflectionTestUtils.setField(client, "readClient", mockReadClient);
+		client.get(doiHandler);
+	}
+
+	@Test
+	public void testCreateGet() throws Exception {
 		// Mock success
 		HttpResponse mockResponse = mock(HttpResponse.class);
 		when(mockResponse.getEntity()).thenReturn(new StringEntity("response body"));
@@ -90,13 +122,13 @@ public class EzidClientTest {
 		when(mockWriteClient.executeWithRetry(any(HttpUriRequest.class))).thenReturn(mockResponse);
 		EzidClient client = new EzidClient();
 		ReflectionTestUtils.setField(client, "writeClient", mockWriteClient);
-		DoiHandler ezidDoiHandler = new DoiHandler();
-		ezidDoiHandler.setDoi("doi:1093.3/sth");
-		ezidDoiHandler.setDto(new Doi());
+		DoiHandler doiHandler = new DoiHandler();
+		doiHandler.setDoi("doi:1093.3/sth");
+		doiHandler.setDto(new Doi());
 		EzidMetadata mockMetadata = mock(EzidMetadata.class);
 		when(mockMetadata.getMetadataAsString()).thenReturn("metadata");
-		ezidDoiHandler.setMetadata(mockMetadata);
-		client.create(ezidDoiHandler);
+		doiHandler.setMetadata(mockMetadata);
+		client.create(doiHandler);
 
 		// Mock 400 BAD_REQUEST "identifier already exists"
 		mockResponse = mock(HttpResponse.class);
@@ -108,7 +140,7 @@ public class EzidClientTest {
 		when(mockWriteClient.executeWithRetry(any(HttpUriRequest.class))).thenReturn(mockResponse);
 		client = new EzidClient();
 		ReflectionTestUtils.setField(client, "writeClient", mockWriteClient);
-		client.create(ezidDoiHandler);
+		client.create(doiHandler);
 
 		// Mock 400 BAD_REQUEST and get()
 		// Mock write client
@@ -130,6 +162,6 @@ public class EzidClientTest {
 		client = new EzidClient();
 		ReflectionTestUtils.setField(client, "writeClient", mockWriteClient);
 		ReflectionTestUtils.setField(client, "readClient", mockReadClient);
-		client.create(ezidDoiHandler);
+		client.create(doiHandler);
 	}
 }
