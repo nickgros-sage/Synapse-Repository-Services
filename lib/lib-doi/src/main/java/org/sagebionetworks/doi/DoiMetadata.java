@@ -25,4 +25,7 @@ public interface DoiMetadata {
 	void setPublicationYear(int publicationYear);
 
 	String getMetadataAsString();
+
+	void initFromString(String metadata);
+
 }

@@ -89,7 +89,7 @@ public class EzidMetadata implements DoiMetadata {
 		return builder.toString();
 	}
 
-	void initFromString(String metadata) {
+	public void initFromString(String metadata) {
 
 		if (metadata == null || metadata.isEmpty()) {
 			throw new IllegalArgumentException("Metadata cannot be null.");
