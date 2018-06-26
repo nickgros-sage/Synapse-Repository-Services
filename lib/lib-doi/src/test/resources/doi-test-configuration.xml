@@ -18,9 +18,9 @@
     <!-- <aop:aspectj-autoproxy /> -->
 
     <bean id="doiHandler" class="org.sagebionetworks.doi.DoiHandler" />
-    <bean id="doiClient" class="org.sagebionetworks.doi.EzidClient" />
+    <bean id="doiClient" class="org.sagebionetworks.doi.DataciteEzClient" />
     <bean id="asyncClient" class="org.sagebionetworks.doi.DoiAsyncClientImpl" />
-    <bean id="doiMetadata" class="org.sagebionetworks.doi.EzidMetadata" />
+    <bean id="doiMetadata" class="org.sagebionetworks.doi.DataciteEzMetadata" />
 
 
 </beans>

@@ -82,7 +82,7 @@ public class EntityDoiManagerImplAutowiredTest {
 		EntityDoiManager manager = entityDoiManager;
 		if (AopUtils.isAopProxy(manager) && manager instanceof Advised) {
 			Object target = ((Advised)manager).getTargetSource().getTarget();
-			manager = (EntityDoiManagerImpl)target;
+			manager = (EntityDoiManagerEzidImpl)target;
 		}
 		ReflectionTestUtils.setField(manager, "doiAsyncClient", mockEzidClient);
 		ReflectionTestUtils.setField(manager, "dxAsyncClient", mockDxClient);

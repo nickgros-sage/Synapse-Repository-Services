@@ -1,31 +1,22 @@
 package org.sagebionetworks.repo.manager.doi;
 
-import java.util.Calendar;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.doi.*;
-import org.sagebionetworks.doi.DoiAsyncClient;
 import org.sagebionetworks.repo.manager.AuthorizationManager;
 import org.sagebionetworks.repo.manager.AuthorizationManagerUtil;
 import org.sagebionetworks.repo.manager.UserManager;
-import org.sagebionetworks.repo.model.ACCESS_TYPE;
-import org.sagebionetworks.repo.model.DatastoreException;
-import org.sagebionetworks.repo.model.DoiDao;
-import org.sagebionetworks.repo.model.EntityType;
-import org.sagebionetworks.repo.model.Node;
-import org.sagebionetworks.repo.model.NodeDAO;
-import org.sagebionetworks.repo.model.ObjectType;
-import org.sagebionetworks.repo.model.UnauthorizedException;
-import org.sagebionetworks.repo.model.UserInfo;
+import org.sagebionetworks.repo.model.*;
 import org.sagebionetworks.repo.model.doi.Doi;
 import org.sagebionetworks.repo.model.doi.DoiStatus;
 import org.sagebionetworks.repo.web.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class EntityDoiManagerImpl implements EntityDoiManager {
+import java.util.Calendar;
 
-	private final Logger logger = LogManager.getLogger(EntityDoiManagerImpl.class);
+public class EntityDoiManagerDataciteImpl implements EntityDoiManager {
+
+	private final Logger logger = LogManager.getLogger(EntityDoiManagerDataciteImpl.class);
 
 	@Autowired private UserManager userManager;
 	@Autowired private AuthorizationManager authorizationManager;
@@ -33,11 +24,11 @@ public class EntityDoiManagerImpl implements EntityDoiManager {
 	@Autowired private NodeDAO nodeDao;;
 	@Autowired private DoiAsyncClient doiAsyncClient;
 	@Autowired private DoiHandler doiHandler;
-	@Autowired private DoiMetadata metadata;
 
+	private DataciteEzMetadata metadata = new DataciteEzMetadata();
 	private final DxAsyncClient dxAsyncClient;
 
-	public EntityDoiManagerImpl() {
+	public EntityDoiManagerDataciteImpl() {
 		dxAsyncClient = new DxAsyncClient();
 	}
 
@@ -87,27 +78,28 @@ public class EntityDoiManagerImpl implements EntityDoiManager {
 
 		// Create DOI string
 		doiHandler.setDto(doiDto);
-		String doi = EzidConstants.DOI_PREFIX + entityId;
+		String doi = DataciteConstants.DOI_PREFIX + entityId;
 		if (versionNumber != null) {
 			doi = doi + "." + versionNumber;
 		}
 		doiHandler.setDoi(doi);
 
 		// Create DOI metadata.
-		String creatorName = EzidConstants.DEFAULT_CREATOR;
+		String creatorName = DataciteConstants.DEFAULT_CREATOR;
 		metadata.setCreator(creatorName);
 		final int year = Calendar.getInstance().get(Calendar.YEAR);
 		metadata.setPublicationYear(year);
-		metadata.setPublisher(EzidConstants.PUBLISHER);
-		String target = EzidConstants.TARGET_URL_PREFIX + entityId;
+		metadata.setPublisher(DataciteConstants.PUBLISHER);
+		String target = DataciteConstants.TARGET_URL_PREFIX + entityId;
 		if (versionNumber != null) {
 			target = target + "/version/" + versionNumber;
 		}
 		metadata.setTarget(target);
 		metadata.setTitle(node.getName());
+		metadata.setDoi(doi);
 		doiHandler.setMetadata(metadata);
 
-		// Call EZID to create the DOI
+		// Call Datacite to create the DOI
 		doiAsyncClient.create(doiHandler, new DoiAsyncCallback() {
 
 			@Override
