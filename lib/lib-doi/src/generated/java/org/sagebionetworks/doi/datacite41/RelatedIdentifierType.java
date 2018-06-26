@@ -6,7 +6,7 @@
 //
 
 
-package org.sagebionetworks.doi;
+package org.sagebionetworks.doi.datacite41;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -78,8 +78,8 @@ public enum RelatedIdentifierType {
         return value;
     }
 
-    public static RelatedIdentifierType fromValue(String v) {
-        for (RelatedIdentifierType c: RelatedIdentifierType.values()) {
+    public static org.sagebionetworks.doi.datacite41.RelatedIdentifierType fromValue(String v) {
+        for (org.sagebionetworks.doi.datacite41.RelatedIdentifierType c: org.sagebionetworks.doi.datacite41.RelatedIdentifierType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

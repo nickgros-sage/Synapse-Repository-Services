@@ -6,7 +6,7 @@
 //
 
 
-package org.sagebionetworks.doi;
+package org.sagebionetworks.doi.datacite41;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -106,8 +106,8 @@ public enum ContributorType {
         return value;
     }
 
-    public static ContributorType fromValue(String v) {
-        for (ContributorType c: ContributorType.values()) {
+    public static org.sagebionetworks.doi.datacite41.ContributorType fromValue(String v) {
+        for (org.sagebionetworks.doi.datacite41.ContributorType c: org.sagebionetworks.doi.datacite41.ContributorType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

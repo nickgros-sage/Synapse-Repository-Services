@@ -6,7 +6,7 @@
 //
 
 
-package org.sagebionetworks.doi;
+package org.sagebionetworks.doi.datacite41;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -14,40 +14,34 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for descriptionType.
+ * <p>Java class for titleType.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="descriptionType">
+ * &lt;simpleType name="titleType">
  *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="Abstract"/>
- *     &lt;enumeration value="Methods"/>
- *     &lt;enumeration value="SeriesInformation"/>
- *     &lt;enumeration value="TableOfContents"/>
- *     &lt;enumeration value="Other"/>
+ *     &lt;enumeration value="AlternativeTitle"/>
+ *     &lt;enumeration value="Subtitle"/>
+ *     &lt;enumeration value="TranslatedTitle"/>
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
  * 
  */
-@XmlType(name = "descriptionType")
+@XmlType(name = "titleType")
 @XmlEnum
-public enum DescriptionType {
+public enum TitleType {
 
-    @XmlEnumValue("Abstract")
-    ABSTRACT("Abstract"),
-    @XmlEnumValue("Methods")
-    METHODS("Methods"),
-    @XmlEnumValue("SeriesInformation")
-    SERIES_INFORMATION("SeriesInformation"),
-    @XmlEnumValue("TableOfContents")
-    TABLE_OF_CONTENTS("TableOfContents"),
-    @XmlEnumValue("Other")
-    OTHER("Other");
+    @XmlEnumValue("AlternativeTitle")
+    ALTERNATIVE_TITLE("AlternativeTitle"),
+    @XmlEnumValue("Subtitle")
+    SUBTITLE("Subtitle"),
+    @XmlEnumValue("TranslatedTitle")
+    TRANSLATED_TITLE("TranslatedTitle");
     private final String value;
 
-    DescriptionType(String v) {
+    TitleType(String v) {
         value = v;
     }
 
@@ -55,8 +49,8 @@ public enum DescriptionType {
         return value;
     }
 
-    public static DescriptionType fromValue(String v) {
-        for (DescriptionType c: DescriptionType.values()) {
+    public static org.sagebionetworks.doi.datacite41.TitleType fromValue(String v) {
+        for (org.sagebionetworks.doi.datacite41.TitleType c: org.sagebionetworks.doi.datacite41.TitleType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

@@ -6,7 +6,7 @@
 //
 
 
-package org.sagebionetworks.doi;
+package org.sagebionetworks.doi.datacite41;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -82,8 +82,8 @@ public enum ResourceType {
         return value;
     }
 
-    public static ResourceType fromValue(String v) {
-        for (ResourceType c: ResourceType.values()) {
+    public static org.sagebionetworks.doi.datacite41.ResourceType fromValue(String v) {
+        for (org.sagebionetworks.doi.datacite41.ResourceType c: org.sagebionetworks.doi.datacite41.ResourceType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

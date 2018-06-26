@@ -6,7 +6,7 @@
 //
 
 
-package org.sagebionetworks.doi;
+package org.sagebionetworks.doi.datacite41;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -115,8 +115,8 @@ public enum RelationType {
         return value;
     }
 
-    public static RelationType fromValue(String v) {
-        for (RelationType c: RelationType.values()) {
+    public static org.sagebionetworks.doi.datacite41.RelationType fromValue(String v) {
+        for (org.sagebionetworks.doi.datacite41.RelationType c: org.sagebionetworks.doi.datacite41.RelationType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }
