@@ -497,6 +497,37 @@ public interface StackConfiguration {
 	 */
 	public String getEzidTargetUrlPrefix();
 
+
+	/**
+	 * Datacite user name.
+	 */
+	public String getDataciteUsername();
+
+	/**
+	 * Datacite password.
+	 */
+	public String getDatacitePassword();
+
+	/**
+	 * DataciteEZ REST API URL.
+	 */
+	public String getDataciteEzUrl();
+
+	/**
+	 * DataciteMDS REST API URL.
+	 */
+	public String getDataciteMdsUrl();
+
+	/**
+	 * Datacite DOI prefix.
+	 */
+	public String getDataciteDoiPrefix();
+
+	/**
+	 * Datacite target URL prefix. Example: https://synapse.prod.sagebase.org/
+	 */
+	public String getDataciteTargetUrlPrefix();
+
 	/**
 	 * The maximum size of a backup batch.
 	 * 

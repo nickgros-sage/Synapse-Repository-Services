@@ -794,6 +794,49 @@ public class StackConfigurationImpl implements StackConfiguration {
 	}
 
 	/**
+	 * Datacite user name.
+	 */
+	public String getDataciteUsername() {
+		return configuration.getProperty("org.sagebionetworks.datacite.username");
+	}
+
+	/**
+	 * Datacite password.
+	 */
+	public String getDatacitePassword() {
+		return configuration.getDecryptedProperty("org.sagebionetworks.datacite.password");
+	}
+
+	/**
+	 * DataciteEZ REST API URL.
+	 */
+	public String getDataciteEzUrl() {
+		return configuration.getProperty("org.sagebionetworks.datacite.ezurl");
+	}
+
+	/**
+	 * DataciteMDS REST API URL.
+	 */
+	public String getDataciteMdsUrl() {
+		return configuration.getProperty("org.sagebionetworks.datacite.mdsurl");
+	}
+
+
+	/**
+	 * Datacite DOI prefix.
+	 */
+	public String getDataciteDoiPrefix() {
+		return configuration.getProperty("org.sagebionetworks.datacite.doi.prefix");
+	}
+
+	/**
+	 * Datacite target URL prefix. Example: https://synapse.prod.sagebase.org/
+	 */
+	public String getDataciteTargetUrlPrefix() {
+		return configuration.getProperty("org.sagebionetworks.datacite.doi.target.url.prefix");
+	}
+
+	/**
 	 * The maximum size of a backup batch.
 	 * 
 	 * @return
