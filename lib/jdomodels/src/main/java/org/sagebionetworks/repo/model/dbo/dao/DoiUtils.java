@@ -166,7 +166,9 @@ public class DoiUtils {
 		dbo.setId(Long.valueOf(dto.getAssociationId()));
 		dbo.setETag(dto.getEtag());
 		// By convention, a DOI DBO should not be created from a v2 DTO unless the DOI is "Ready"
-		dbo.setDoiStatus(DoiStatus.READY);
+		// TODO: Switch this to "Ready" upon migration to DataCite
+		//	dbo.setDoiStatus(DoiStatus.READY);
+		dbo.setDoiStatus(DoiStatus.TEMPORARY);
 		dbo.setObjectId(KeyFactory.stringToKey(dto.getObjectId()));
 		dbo.setObjectType(dto.getObjectType());
 		if (dto.getObjectVersion() == null) {

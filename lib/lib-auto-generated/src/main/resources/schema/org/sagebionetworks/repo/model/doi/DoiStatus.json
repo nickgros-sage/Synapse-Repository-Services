@@ -17,6 +17,10 @@
         {
             "name": "ERROR",
             "description": "TODO: Auto-generated description"
+        },
+        {
+            "name": "TEMPORARY",
+            "description": "Created using the new DOI API on a test prefix. This DOI will be deleted in the future."
         }
     ]
 }

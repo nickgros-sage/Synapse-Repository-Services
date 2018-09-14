@@ -129,7 +129,10 @@ public class DoiUtilsTest {
 		assertEquals(createdOn.getTime(), dbo.getCreatedOn().getTime());
 		assertEquals(objectType.name(), dbo.getObjectType());
 		// NOTE the new DTO does not support DoiStatus, so it will always be 'READY' in the DBO
-		assertEquals(DoiStatus.READY.name(), dbo.getDoiStatus());
+		// TODO: Set to ready after migration
+//		assertEquals(DoiStatus.READY.name(), dbo.getDoiStatus());
+		assertEquals(DoiStatus.TEMPORARY.name(), dbo.getDoiStatus());
+
 		assertEquals(eTag, dbo.getETag());
 		assertEquals(id, dbo.getId());
 		assertEquals(objectId, dbo.getObjectId());
