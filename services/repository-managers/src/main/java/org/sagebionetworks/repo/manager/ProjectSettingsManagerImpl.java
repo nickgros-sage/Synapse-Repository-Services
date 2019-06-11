@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.Channels;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -13,6 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.aws.SynapseS3Client;
+import org.sagebionetworks.gcp.GoogleCloudClientFactory;
+import org.sagebionetworks.gcp.SynapseGoogleCloudStorageClient;
 import org.sagebionetworks.repo.model.ACCESS_TYPE;
 import org.sagebionetworks.repo.model.DatastoreException;
 import org.sagebionetworks.repo.model.EntityHeader;
@@ -28,7 +31,9 @@ import org.sagebionetworks.repo.model.UnauthorizedException;
 import org.sagebionetworks.repo.model.UserInfo;
 import org.sagebionetworks.repo.model.UserProfile;
 import org.sagebionetworks.repo.model.file.UploadDestinationLocation;
+import org.sagebionetworks.repo.model.file.UploadType;
 import org.sagebionetworks.repo.model.jdo.KeyFactory;
+import org.sagebionetworks.repo.model.project.ExternalGoogleCloudStorageLocationSetting;
 import org.sagebionetworks.repo.model.project.ExternalObjectStorageLocationSetting;
 import org.sagebionetworks.repo.model.project.ExternalS3StorageLocationSetting;
 import org.sagebionetworks.repo.model.project.ExternalStorageLocationSetting;
@@ -48,6 +53,8 @@ import org.springframework.util.CollectionUtils;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.model.S3Object;
+import com.google.cloud.ReadChannel;
+import com.google.cloud.storage.Blob;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.net.InternetDomainName;
@@ -77,6 +84,9 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 
 	@Autowired
 	private SynapseS3Client s3client;
+
+//	@Autowired
+//	private SynapseGoogleCloudStorageClient googleCloudStorageClient;
 
 	@Autowired
 	private UserProfileManager userProfileManager;
@@ -197,13 +207,24 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 			//A valid bucket name must also be a valid domain name
 			ValidateArgument.requirement(InternetDomainName.isValid(externalS3StorageLocationSetting.getBucket()), "Invalid Bucket Name");
 
-			validateBucketAccess(externalS3StorageLocationSetting);
-			validateOwnership(externalS3StorageLocationSetting, userProfile);
+			validateS3BucketAccess(externalS3StorageLocationSetting);
+			validateS3BucketOwnership(externalS3StorageLocationSetting, userProfile);
+		} else if (storageLocationSetting instanceof ExternalGoogleCloudStorageLocationSetting) {
+			UserProfile userProfile = userProfileManager.getUserProfile(userInfo.getId().toString());
+			ExternalGoogleCloudStorageLocationSetting externalGoogleCloudStorageLocationSetting = (ExternalGoogleCloudStorageLocationSetting) storageLocationSetting;
+			//A valid bucket name must also be a valid domain name
+			// TODO: Need this line for GCP?
+			ValidateArgument.requirement(InternetDomainName.isValid(externalGoogleCloudStorageLocationSetting.getBucket()), "Invalid Bucket Name");
+
+			externalGoogleCloudStorageLocationSetting.setUploadType(UploadType.GOOGLECLOUDSTORAGE);
+			validateGoogleCloudBucketAccess(externalGoogleCloudStorageLocationSetting);
+			validateGoogleCloudBucketOwnership(externalGoogleCloudStorageLocationSetting, userProfile);
 		} else if (storageLocationSetting instanceof ExternalStorageLocationSetting) {
 			ExternalStorageLocationSetting externalStorageLocationSetting = (ExternalStorageLocationSetting) storageLocationSetting;
 			ValidateArgument.required(externalStorageLocationSetting.getUrl(), "url");
 			ValidateArgument.validUrl(externalStorageLocationSetting.getUrl());
 		}else if (storageLocationSetting instanceof ExternalObjectStorageLocationSetting){
+			// TODO: What is this block for, why does this ExternalObject class exist?
 			ExternalObjectStorageLocationSetting externalObjectS3StorageLocationSetting = (ExternalObjectStorageLocationSetting) storageLocationSetting;
 
 			//strip leading and trailing slashes and whitespace from the endpointUrl and bucket
@@ -311,12 +332,12 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 			}
 		}
 	}
-	
-	private void validateBucketAccess(ExternalS3StorageLocationSetting externalS3StorageLocationSetting) {
+
+	private void validateS3BucketAccess(ExternalS3StorageLocationSetting externalS3StorageLocationSetting) {
 		s3client.getRegionForBucket(externalS3StorageLocationSetting.getBucket());
 	}
 
-	private void validateOwnership(ExternalS3StorageLocationSetting externalS3StorageLocationSetting, UserProfile userProfile)
+	private void validateS3BucketOwnership(ExternalS3StorageLocationSetting externalS3StorageLocationSetting, UserProfile userProfile)
 			throws IOException, NotFoundException {
 		// check the ownership of the S3 bucket against the user
 		String bucket = externalS3StorageLocationSetting.getBucket();
@@ -363,6 +384,62 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 					+ " is not what was expected. " + getExplanation(userProfile, bucket, key));
 		}
 	}
+
+	private void validateGoogleCloudBucketAccess(ExternalGoogleCloudStorageLocationSetting externalS3StorageLocationSetting) {
+		// TODO: do i need this?
+		// s3client.getRegionForBucket(externalS3StorageLocationSetting.getBucket());
+	}
+
+	private void validateGoogleCloudBucketOwnership(ExternalGoogleCloudStorageLocationSetting externalGoogleCloudStorageLocationSetting, UserProfile userProfile)
+			throws IOException, NotFoundException {
+		SynapseGoogleCloudStorageClient googleCloudStorageClient = GoogleCloudClientFactory.createGoogleCloudStorageClient();
+		String bucket = externalGoogleCloudStorageLocationSetting.getBucket();
+		String key = (externalGoogleCloudStorageLocationSetting.getBaseKey() == null ? "" : externalGoogleCloudStorageLocationSetting.getBaseKey())
+				+ OWNER_MARKER;
+
+		Blob googleObject = googleCloudStorageClient.get(bucket, key);
+
+
+		// TODO: google cloud error handling
+		if (googleObject == null) {
+			throw new IllegalArgumentException("Did not find Google Cloud object at key " + key + " from bucket " + bucket + ". ");
+
+//			if (AmazonErrorCodes.S3_BUCKET_NOT_FOUND.equals(e.getErrorCode())) {
+				// throw new IllegalArgumentException("Did not find Google Cloud bucket " + bucket + ". " + getExplanation(userProfile, bucket, key));
+//			} else if (AmazonErrorCodes.S3_NOT_FOUND.equals(e.getErrorCode()) || AmazonErrorCodes.S3_KEY_NOT_FOUND.equals(e.getErrorCode())) {
+//				if (key.equals(OWNER_MARKER)) {
+//					throw new IllegalArgumentException("Did not find S3 object at key " + key + " from bucket " + bucket + ". "
+//							+ getExplanation(userProfile, bucket, key));
+//				} else {
+//					throw new IllegalArgumentException("Did not find S3 object at key " + key + " from bucket " + bucket + ". If the S3 object is in a folder, please make sure you specify a trailing '/' in the base key. " + getExplanation(userProfile, bucket, key));
+//				}
+//			} else {
+//				throw new IllegalArgumentException("Could not read S3 object at key " + key + " from bucket " + bucket + ": "
+//						+ e.getMessage() + ". " + getExplanation(userProfile, bucket, key));
+//			}
+		}
+
+		String userName;
+		BufferedReader reader = new BufferedReader(new InputStreamReader(Channels.newInputStream(googleObject.reader())));
+		try {
+			userName = reader.readLine();
+		} catch (IOException e) {
+			throw new IllegalArgumentException("Could not read username from key " + key + " from bucket " + bucket + ". "
+					+ getExplanation(userProfile, bucket, key));
+		} finally {
+			reader.close();
+		}
+
+		if (StringUtils.isBlank(userName)) {
+			throw new IllegalArgumentException("No username found under key " + key + " from bucket " + bucket + ". "
+					+ getExplanation(userProfile, bucket, key));
+		}
+
+		if (!checkForCorrectName(userProfile, userName)) {
+			throw new IllegalArgumentException("The username " + userName + " found under key " + key + " from bucket " + bucket
+					+ " is not what was expected. " + getExplanation(userProfile, bucket, key));
+		}	}
+
 
 	private boolean checkForCorrectName(UserProfile userProfile, String userName) {
 		if (userName.equals(userProfile.getUserName())) {

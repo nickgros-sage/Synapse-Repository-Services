@@ -242,6 +242,7 @@ public class SqlConstants {
 	public static final String COL_MULTIPART_FILE_HANDLE_ID			= "FILE_HANDLE_ID";
 	public static final String COL_MULTIPART_STATE					= "STATE";
 	public static final String COL_MULTIPART_UPLOAD_TOKEN			= "UPLOAD_TOKEN";
+	public static final String COL_MULTIPART_UPLOAD_TYPE			= "UPLOAD_TYPE";
 	public static final String COL_MULTIPART_BUCKET					= "S3_BUCKET";
 	public static final String COL_MULTIPART_KEY					= "S3_KEY";
 	public static final String COL_MULTIPART_NUMBER_OF_PARTS		= "NUMBER_OF_PARTS";
