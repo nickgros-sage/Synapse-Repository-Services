@@ -16,6 +16,7 @@ import org.sagebionetworks.repo.model.dao.FileHandleDao;
 import org.sagebionetworks.repo.model.file.ExternalFileHandle;
 import org.sagebionetworks.repo.model.file.ExternalObjectStoreFileHandle;
 import org.sagebionetworks.repo.model.file.FileHandle;
+import org.sagebionetworks.repo.model.file.GoogleCloudFileHandle;
 import org.sagebionetworks.repo.model.file.PreviewFileHandle;
 import org.sagebionetworks.repo.model.file.ProxyFileHandle;
 import org.sagebionetworks.repo.model.file.S3FileHandle;
@@ -54,6 +55,10 @@ public class FileHandleSnapshotRecordWriter implements ObjectRecordWriter {
 			S3FileHandle s3FH = (S3FileHandle) fileHandle;
 			snapshot.setBucket(s3FH.getBucketName());
 			snapshot.setKey(s3FH.getKey());
+		} else if (fileHandle instanceof GoogleCloudFileHandle) {
+			GoogleCloudFileHandle googleFH = (GoogleCloudFileHandle) fileHandle;
+			snapshot.setBucket(googleFH.getBucketName());
+			snapshot.setKey(googleFH.getKey());
 		} else if (fileHandle instanceof PreviewFileHandle) {
 			PreviewFileHandle previewFH = (PreviewFileHandle) fileHandle;
 			snapshot.setBucket(previewFH.getBucketName());

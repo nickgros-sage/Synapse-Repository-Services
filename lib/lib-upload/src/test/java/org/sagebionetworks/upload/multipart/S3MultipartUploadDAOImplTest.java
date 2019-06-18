@@ -169,12 +169,13 @@ public class S3MultipartUploadDAOImplTest {
 	public void testAddPart(){
 		CopyPartResult result = new CopyPartResult();
 		when(mockS3Client.copyPart(any(CopyPartRequest.class))).thenReturn(result);
-		
+
+		String uploadId = "3553";
 		String uploadToken = "uploadToken";
 		String partKey = key+"/101";
 		String partMD5Hex = "8356accbaa8bfc6ddc6c612224c6c9b3";
 		int partNumber = 101;
-		long totalNumberOfParts = 1001L;
+		long totalNumberOfParts = 1001;
 		AddPartRequest request  = new AddPartRequest(uploadId, uploadToken, bucket, key, partKey, partMD5Hex, partNumber, totalNumberOfParts);
 		// call under test.
 		dao.addPart(request);
@@ -195,13 +196,14 @@ public class S3MultipartUploadDAOImplTest {
 		// returning a null indicates an abort.
 		CopyPartResult result = null;
 		when(mockS3Client.copyPart(any(CopyPartRequest.class))).thenReturn(result);
-		
-		String uploadToken = "uploadToken";
+
+		String uploadId = "3553";
+		String uplaodToken = "uploadToken";
 		String partKey = key+"/101";
 		String partMD5Hex = "8356accbaa8bfc6ddc6c612224c6c9b3";
 		int partNumber = 101;
-		long totalNumberOfParts = 1001L;
-		AddPartRequest request  = new AddPartRequest(uploadId, uploadToken, bucket, key, partKey, partMD5Hex, partNumber, totalNumberOfParts);
+		long totalNumberOfParts = 1001;
+		AddPartRequest request  = new AddPartRequest(uploadId, uplaodToken, bucket, key, partKey, partMD5Hex, partNumber, totalNumberOfParts);
 		// call under test.
 		try {
 			dao.addPart(request);

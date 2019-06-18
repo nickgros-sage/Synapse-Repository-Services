@@ -1,24 +1,29 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.sagebionetworks</groupId>
-    <artifactId>lib</artifactId>
-    <version>develop-SNAPSHOT</version>
-  </parent>
-  <artifactId>lib-upload</artifactId>
-  <name>lib-upload</name>
-  <description>DAOs for uploading files to places like S3</description>
+
+	<parent>
+		<artifactId>lib</artifactId>
+		<groupId>org.sagebionetworks</groupId>
+		<version>develop-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+	<artifactId>lib-gcp</artifactId>
+	<name>lib-gcp</name>
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
 	<dependencies>
-		<!-- Logging -->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-		</dependency>
-		<!-- Sage Bionetworks Dependencies -->
 		<dependency>
 			<groupId>org.sagebionetworks</groupId>
 			<artifactId>lib-stackConfiguration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.sagebionetworks</groupId>
+			<artifactId>lib-auto-generated</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.sagebionetworks</groupId>
@@ -26,18 +31,21 @@
 		</dependency>
 		<dependency>
 			<groupId>org.sagebionetworks</groupId>
-			<artifactId>lib-gcp</artifactId>
+			<artifactId>simple-http-client</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.sagebionetworks</groupId>
-			<artifactId>lib-jdomodels</artifactId>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
 		</dependency>
-		<!-- Spring -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-storage</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
+			<artifactId>spring-aop</artifactId>
+			<scope>test</scope>
 		</dependency>
-		<!-- For testing -->
 		<dependency>
 			<groupId>org.junit.platform</groupId>
 			<artifactId>junit-platform-launcher</artifactId>
@@ -64,6 +72,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
@@ -75,12 +87,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<scope>test</scope>
+			<artifactId>spring-context</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jdbc</artifactId>
-        </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+		</dependency>
+	</dependencies>
 </project>

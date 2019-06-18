@@ -20,6 +20,7 @@ import org.sagebionetworks.aws.SynapseS3Client;
 import org.sagebionetworks.repo.model.StorageLocationDAO;
 import org.sagebionetworks.repo.model.UserInfo;
 import org.sagebionetworks.repo.model.UserProfile;
+import org.sagebionetworks.repo.model.project.ExternalGoogleCloudStorageLocationSetting;
 import org.sagebionetworks.repo.model.project.ExternalObjectStorageLocationSetting;
 import org.sagebionetworks.repo.model.project.ExternalS3StorageLocationSetting;
 
@@ -46,7 +47,8 @@ public class ProjectSettingsManagerImplUnitTest {
 	@Mock
 	private StorageLocationDAO storageLocationDAO;
 
-	ExternalS3StorageLocationSetting externalS3StorageLocationSetting;
+	private ExternalS3StorageLocationSetting externalS3StorageLocationSetting;
+	private ExternalGoogleCloudStorageLocationSetting externalGoogleCloudStorageLocationSetting;
 
 	@BeforeEach
 	public void before() {
@@ -105,4 +107,48 @@ public class ProjectSettingsManagerImplUnitTest {
 		});
 	}
 
-}
+	@Test
+	public void testCreateExternalGoogleCloudStorageLocationSetting_HappyCase() throws Exception {
+		S3Object s3Object = new S3Object();
+		s3Object.setObjectContent(new ByteArrayInputStream(USER_NAME.getBytes()));
+		when(synapseS3Client.getObject(bucketName, "owner.txt")).thenReturn(s3Object);
+
+		when(storageLocationDAO.create(externalGoogleCloudStorageLocationSetting)).thenReturn(999L);
+
+		// method under test
+		projectSettingsManagerImpl.createStorageLocationSetting(userInfo, externalGoogleCloudStorageLocationSetting);
+
+		verify(storageLocationDAO).create(externalGoogleCloudStorageLocationSetting);
+	}
+
+	@Test
+	public void testCreateExternalGoogleCloudStorageLocationSetting_UnsharedBucket() {
+		when(synapseS3Client.getRegionForBucket(bucketName)).thenThrow(new CannotDetermineBucketLocationException());
+
+		assertThrows(CannotDetermineBucketLocationException.class, ()->{
+			// method under test
+			projectSettingsManagerImpl.createStorageLocationSetting(userInfo, externalGoogleCloudStorageLocationSetting);
+		});
+	}
+
+	@Test
+	public void testCreateExternalGoogleCloudStorageLocationSetting_InvalidS3BucketName(){
+		externalS3StorageLocationSetting.setBucket("s3://my-bucket-name-is-wrong/");
+
+		assertThrows(IllegalArgumentException.class, ()->{
+			// method under test
+			projectSettingsManagerImpl.createStorageLocationSetting(userInfo, externalS3StorageLocationSetting);
+		});
+	}
+
+	@Test
+	public void testCreateExternalobjectStorageLocationSetting_InvalidS3BucketName(){
+		ExternalObjectStorageLocationSetting externalObjectStorageLocationSetting = new ExternalObjectStorageLocationSetting();
+		externalObjectStorageLocationSetting.setBucket("s3://my-bucket-name-is-wrong/");
+		externalObjectStorageLocationSetting.setEndpointUrl("https://myendpoint.com");
+
+		assertThrows(IllegalArgumentException.class, ()->{
+			// method under test
+			projectSettingsManagerImpl.createStorageLocationSetting(userInfo, externalObjectStorageLocationSetting);
+		});
+	}}

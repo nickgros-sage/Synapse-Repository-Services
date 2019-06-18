@@ -22,6 +22,7 @@ import org.sagebionetworks.repo.model.ObjectType;
 import org.sagebionetworks.repo.model.file.ExternalFileHandle;
 import org.sagebionetworks.repo.model.file.ExternalObjectStoreFileHandle;
 import org.sagebionetworks.repo.model.file.FileHandle;
+import org.sagebionetworks.repo.model.file.GoogleCloudFileHandle;
 import org.sagebionetworks.repo.model.file.PreviewFileHandle;
 import org.sagebionetworks.repo.model.file.ProxyFileHandle;
 import org.sagebionetworks.repo.model.file.S3FileHandle;
@@ -76,6 +77,13 @@ public class PreviewWorker implements ChangeMessageDrivenRunner {
 					if (s3fileMeta.getPreviewId() == null) {
 						// Generate a preview.
 						previewManager.generatePreview(s3fileMeta);
+					}
+				} else if (metadata instanceof GoogleCloudFileHandle) {
+					GoogleCloudFileHandle googleCloudFileMeta = (GoogleCloudFileHandle) metadata;
+					// Only generate a preview if we do not already have one.
+					if (googleCloudFileMeta.getPreviewId() == null) {
+						// Generate a preview.
+						previewManager.generatePreview(googleCloudFileMeta);
 					}
 				} else if (metadata instanceof ExternalFileHandle) {
 					// we need to add support for this

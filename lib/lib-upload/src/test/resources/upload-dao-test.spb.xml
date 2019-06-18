@@ -11,11 +11,17 @@
 	<!-- Turn on Spring's auotproxy using AspectJ's @Aspect annotations. -->
 	<aop:aspectj-autoproxy />
 
-	<import resource="gcp-spb.xml"/>
 	<import resource="stack-configuration.spb.xml" />
+
 
 	<bean id="amazonS3Client" class="org.sagebionetworks.aws.AwsClientFactory"
 		factory-method="createAmazonS3Client" scope="singleton" />
+
+	<bean id="googleCloudConfig" class="org.sagebionetworks.gcp.StackGoogleCloudConfigProvider" scope="singleton"/>
+
+	<bean id="googleCloudStorageClient" class="org.sagebionetworks.gcp.SynapseGoogleCloudStorageClientImpl" scope="singleton" >
+		<constructor-arg index="0" ref="googleCloudConfig"/>
+	</bean>
 
 	<bean id="uploadContentToS3DAO" class="org.sagebionetworks.upload.discussion.UploadContentToS3DAOImpl"
 		scope="singleton" init-method="initialize">
@@ -25,6 +31,7 @@
 	<bean id="s3multipartUploadDAO" class="org.sagebionetworks.upload.multipart.S3MultipartUploadDAOImpl"
 		scope="singleton"/>
 
-	<bean id="googleCloudStorageMultipartUploadDAO" class="org.sagebionetworks.upload.multipart.GoogleCloudStorageMultipartUploadDAOImpl"/>
-	<bean id="cloudServiceMultipartUploadDAOProvider" class="org.sagebionetworks.upload.multipart.CloudServiceMultipartUploadDAOProviderImpl"/>
+	<bean id="googleCloudStorageMultipartUploadDAO" class="org.sagebionetworks.upload.multipart.GoogleCloudStorageMultipartUploadDAOImpl"
+		  scope="singleton"/>
+
 </beans>

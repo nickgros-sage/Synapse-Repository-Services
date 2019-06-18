@@ -108,20 +108,11 @@ public class S3MultipartUploadDAOImpl implements S3MultipartUploadDAO {
 			throw new IllegalArgumentException(
 					"The provided MD5 does not match the MD5 of the uploaded part.  Please re-upload the part.");
 		}
+
+		// After copying the part we can delete the old part file.
+		s3Client.deleteObject(request.getBucket(), request.getPartKey());
 	}
 
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.sagebionetworks.upload.multipart.S3MultipartUploadDAO#deleteObject
-	 * (java.lang.String, java.lang.String)
-	 */
-	@Override
-	public void deleteObject(String bucket, String key) {
-		s3Client.deleteObject(bucket, key);
-	}
 
 	/*
 	 * (non-Javadoc)

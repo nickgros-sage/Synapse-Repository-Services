@@ -1161,6 +1161,7 @@ public class StackConfigurationImpl implements StackConfiguration {
 	 * 
 	 * @return
 	 */
+	@Override
 	public int getCurrentHmacSigningKeyVersion() {
 		return Integer.parseInt(configuration.getProperty("org.sagebionetworks.hmac.signing.key.current.version"));
 	}
@@ -1168,5 +1169,10 @@ public class StackConfigurationImpl implements StackConfiguration {
 	@Override
 	public boolean useSSLConnectionForTablesDatabase() {
 		return Boolean.parseBoolean(configuration.getProperty("org.sagebionetworks.table.cluster.use.ssl"));
+	}
+
+	@Override
+	public String getGoogleCloudCredentials() {
+		return configuration.getDecryptedProperty("dev.nickgros.com.google.cloud.creds");
 	}
 }

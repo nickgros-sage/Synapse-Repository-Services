@@ -30,7 +30,7 @@
 		<!-- Setting this to true will cause Cargo to setup and start both web
 			applications and then wait for shutdown (ctrl-c) This is useful for debugging
 			the deployed applications. -->
-		<org.sagebionetworks.integration.debug>false</org.sagebionetworks.integration.debug>
+		<org.sagebionetworks.integration.debug>true</org.sagebionetworks.integration.debug>
 	</properties>
 
 	<build>
@@ -141,9 +141,9 @@
 						<properties>
 							<cargo.jvmargs>
 
-<!--  								-Xdebug -->
-<!--  								-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8989 -->
-<!--  								-Xnoagent -->
+  								-Xdebug
+  								-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8989
+  								-Xnoagent
 
 								-Xmx2g
 								-Xms128m

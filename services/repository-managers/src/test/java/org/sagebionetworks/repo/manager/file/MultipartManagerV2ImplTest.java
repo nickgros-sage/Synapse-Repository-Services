@@ -58,7 +58,6 @@ import org.sagebionetworks.repo.model.file.PartPresignedUrl;
 import org.sagebionetworks.repo.model.file.S3FileHandle;
 import org.sagebionetworks.upload.multipart.MultipartUploadUtils;
 import org.sagebionetworks.upload.multipart.S3MultipartUploadDAO;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Lists;
 
@@ -639,11 +638,11 @@ public class MultipartManagerV2ImplTest {
 	}
 	
 	@Test
-	public void testcreateFileHandle(){
+	public void testCreateFileHandle(){
 
 		long fileSize = 123;
 		// call under test
-		S3FileHandle result = manager.createFileHandle(fileSize, composite, request);
+		S3FileHandle result = (S3FileHandle) manager.createFileHandle(fileSize, composite, request);
 		assertEquals(fileHandle, result);
 		
 		ArgumentCaptor<S3FileHandle> capture = ArgumentCaptor.forClass(S3FileHandle.class);
@@ -667,7 +666,7 @@ public class MultipartManagerV2ImplTest {
 		long fileSize = 123;
 		request.setGeneratePreview(false);
 		// call under test
-		S3FileHandle result = manager.createFileHandle(fileSize, composite, request);
+		S3FileHandle result = (S3FileHandle) manager.createFileHandle(fileSize, composite, request);
 		assertEquals(fileHandle, result);
 		
 		ArgumentCaptor<S3FileHandle> capture = ArgumentCaptor.forClass(S3FileHandle.class);

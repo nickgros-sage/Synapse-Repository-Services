@@ -20,10 +20,12 @@ import java.util.concurrent.Callable;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.sagebionetworks.aws.SynapseS3Client;
+import org.sagebionetworks.gcp.SynapseGoogleCloudStorageClient;
 import org.sagebionetworks.ids.IdGenerator;
 import org.sagebionetworks.ids.IdType;
 import org.sagebionetworks.repo.model.dao.FileHandleDao;
@@ -42,10 +44,11 @@ import com.amazonaws.services.s3.model.S3ObjectInputStream;
 
 public class PreviewManagerImplTest {
 	
-	PreviewManagerImpl previewManager;
 	FileHandleDao stubFileMetadataDao;
 	@Mock
 	private SynapseS3Client mockS3Client;
+	@Mock
+	private SynapseGoogleCloudStorageClient mockGoogleCloudClient;
 	@Mock
 	private FileProvider mockFileProvider;
 	@Mock
@@ -60,6 +63,9 @@ public class PreviewManagerImplTest {
 	private S3ObjectInputStream mockS3ObjectInputStream;
 	@Mock
 	private IdGenerator mockIdGenerator;
+	@InjectMocks
+	PreviewManagerImpl previewManager;
+
 	Long maxPreviewSize = 100l;
 	float multiplerForContentType = 1.5f;
 	String testContentType = "text/plain";
@@ -82,7 +88,7 @@ public class PreviewManagerImplTest {
 		List<PreviewGenerator> genList = new LinkedList<PreviewGenerator>();
 		genList.add(mockPreviewGenerator);
 		
-		previewManager = new PreviewManagerImpl(stubFileMetadataDao, mockS3Client, mockFileProvider, genList, maxPreviewSize);
+		previewManager = new PreviewManagerImpl(stubFileMetadataDao, mockS3Client, mockGoogleCloudClient, mockFileProvider, genList, maxPreviewSize);
 		
 		// This is a test file metadata
 		testMetadata = new S3FileHandle();

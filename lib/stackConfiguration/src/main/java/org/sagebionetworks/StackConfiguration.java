@@ -778,4 +778,7 @@ public interface StackConfiguration {
 	 */
 	public int getCurrentHmacSigningKeyVersion();
 
+
+	public String getGoogleCloudCredentials();
+
 }
