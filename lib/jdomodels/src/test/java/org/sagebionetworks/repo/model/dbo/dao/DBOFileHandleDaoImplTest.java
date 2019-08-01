@@ -29,7 +29,7 @@ import org.sagebionetworks.repo.model.DatastoreException;
 import org.sagebionetworks.repo.model.ObjectType;
 import org.sagebionetworks.repo.model.StorageLocationDAO;
 import org.sagebionetworks.repo.model.dao.FileHandleDao;
-import org.sagebionetworks.repo.model.dbo.persistence.DBOFileHandle;
+import org.sagebionetworks.repo.model.dao.FileHandleMetadataType;
 import org.sagebionetworks.repo.model.file.ExternalFileHandle;
 import org.sagebionetworks.repo.model.file.ExternalObjectStoreFileHandle;
 import org.sagebionetworks.repo.model.file.FileHandle;
@@ -44,9 +44,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -61,7 +61,7 @@ public class DBOFileHandleDaoImplTest {
 	private DBOChangeDAO changeDAO;
 	@Autowired
 	private StorageLocationDAO storageLocationDao;
-	
+
 	private List<String> toDelete;
 	private List<Long> storageLocationsToDelete;
 	private String creatorUserGroupId;
@@ -628,17 +628,17 @@ public class DBOFileHandleDaoImplTest {
 	public void testCountReferences() throws Exception {
 		S3FileHandle handle1 = TestUtils.createS3FileHandle(creatorUserGroupId, idGenerator.generateNewId(IdType.FILE_IDS).toString());
 		handle1.setKey(UUID.randomUUID().toString());
-		assertEquals(0, fileHandleDao.getNumberOfReferencesToFile(DBOFileHandle.MetadataType.S3.toString(), handle1.getBucketName(), handle1.getKey()));
+		assertEquals(0, fileHandleDao.getNumberOfReferencesToFile(FileHandleMetadataType.S3, handle1.getBucketName(), handle1.getKey()));
 		handle1 = (S3FileHandle) fileHandleDao.createFile(handle1);
-		assertEquals(1, fileHandleDao.getNumberOfReferencesToFile(DBOFileHandle.MetadataType.S3.toString(), handle1.getBucketName(), handle1.getKey()));
+		assertEquals(1, fileHandleDao.getNumberOfReferencesToFile(FileHandleMetadataType.S3, handle1.getBucketName(), handle1.getKey()));
 		S3FileHandle handle2 = TestUtils.createS3FileHandle(creatorUserGroupId, idGenerator.generateNewId(IdType.FILE_IDS).toString());
 		handle2.setKey(handle1.getKey());
 		handle2 = (S3FileHandle) fileHandleDao.createFile(handle2);
-		assertEquals(2, fileHandleDao.getNumberOfReferencesToFile(DBOFileHandle.MetadataType.S3.toString(), handle1.getBucketName(), handle1.getKey()));
+		assertEquals(2, fileHandleDao.getNumberOfReferencesToFile(FileHandleMetadataType.S3, handle1.getBucketName(), handle1.getKey()));
 		fileHandleDao.delete(handle2.getId());
-		assertEquals(1, fileHandleDao.getNumberOfReferencesToFile(DBOFileHandle.MetadataType.S3.toString(), handle1.getBucketName(), handle1.getKey()));
+		assertEquals(1, fileHandleDao.getNumberOfReferencesToFile(FileHandleMetadataType.S3, handle1.getBucketName(), handle1.getKey()));
 		fileHandleDao.delete(handle1.getId());
-		assertEquals(0, fileHandleDao.getNumberOfReferencesToFile(DBOFileHandle.MetadataType.S3.toString(), handle1.getBucketName(), handle1.getKey()));
+		assertEquals(0, fileHandleDao.getNumberOfReferencesToFile(FileHandleMetadataType.S3, handle1.getBucketName(), handle1.getKey()));
 	}
 
 	@Test
@@ -723,61 +723,61 @@ public class DBOFileHandleDaoImplTest {
 			assertEquals(ObjectType.FILE, message.getObjectType());
 		}
 	}
-	
+
 	@Test
 	public void testUpdateStorageLocationBatch() {
 		StorageLocationSetting oldStorageLocation1 = TestUtils.createExternalStorageLocation(creatorUserGroupIdL, "Old Storage Location");
 		StorageLocationSetting oldStorageLocation2 = TestUtils.createExternalStorageLocation(creatorUserGroupIdL, "Old Storage Location");
-		
+
 		StorageLocationSetting newStorageLocation = TestUtils.createExternalStorageLocation(creatorUserGroupIdL, "New Storage Location");
-		
+
 		Long oldStorageLocation1Id = storageLocationDao.create(oldStorageLocation1);
 		Long oldStorageLocation2Id = storageLocationDao.create(oldStorageLocation2);
 		Long newStorageLocationId = storageLocationDao.create(newStorageLocation);
-		
+
 		storageLocationsToDelete.addAll(Arrays.asList(oldStorageLocation1Id, oldStorageLocation2Id, newStorageLocationId));
-		
+
 		FileHandle fileHandle1 = TestUtils.createExternalFileHandle(creatorUserGroupId, idGenerator.generateNewId(IdType.FILE_IDS).toString());
 		FileHandle fileHandle2 = TestUtils.createExternalFileHandle(creatorUserGroupId, idGenerator.generateNewId(IdType.FILE_IDS).toString());
 		FileHandle fileHandle3 = TestUtils.createExternalFileHandle(creatorUserGroupId, idGenerator.generateNewId(IdType.FILE_IDS).toString());
-		
+
 		fileHandle1.setCreatedOn(new Timestamp(System.currentTimeMillis()/1000*1000));
 		fileHandle1.setStorageLocationId(oldStorageLocation1Id);
-		
+
 		fileHandle2.setCreatedOn(new Timestamp(System.currentTimeMillis()/1000*1000));
 		fileHandle2.setStorageLocationId(oldStorageLocation2Id);
-		
+
 		// File handle with the new storage location id
 		fileHandle3.setCreatedOn(new Timestamp(System.currentTimeMillis()/1000*1000));
 		fileHandle3.setStorageLocationId(newStorageLocationId);
-		
+
 		fileHandleDao.createBatch(Arrays.asList(fileHandle1, fileHandle2, fileHandle3));
-		
+
 		fileHandle1 = fileHandleDao.get(fileHandle1.getId());
 		fileHandle2 = fileHandleDao.get(fileHandle2.getId());
 		fileHandle3 = fileHandleDao.get(fileHandle3.getId());
-		
+
 		toDelete.addAll(Arrays.asList(fileHandle1.getId(), fileHandle2.getId(), fileHandle3.getId()));
-		
+
 		String fileHandle1Etag = fileHandle1.getEtag();
 		String fileHandle2Etag = fileHandle2.getEtag();
 		String fileHandle3Etag = fileHandle3.getEtag();
-		
+
 		// Call under test
 		fileHandleDao.updateStorageLocationBatch(ImmutableSet.of(oldStorageLocation1Id, oldStorageLocation2Id), newStorageLocationId);
-		
+
 		fileHandle1 = fileHandleDao.get(fileHandle1.getId());
 		fileHandle2 = fileHandleDao.get(fileHandle2.getId());
 		fileHandle3 = fileHandleDao.get(fileHandle3.getId());
-		
+
 		assertEquals(newStorageLocationId, fileHandle1.getStorageLocationId());
 		assertEquals(newStorageLocationId, fileHandle2.getStorageLocationId());
 		assertEquals(newStorageLocationId, fileHandle3.getStorageLocationId());
-		
+
 		assertNotEquals(fileHandle1Etag, fileHandle1.getEtag());
 		assertNotEquals(fileHandle2Etag, fileHandle2.getEtag());
 		// This should have not changed
 		assertEquals(fileHandle3Etag, fileHandle3.getEtag());
-		
+
 	}
 }
