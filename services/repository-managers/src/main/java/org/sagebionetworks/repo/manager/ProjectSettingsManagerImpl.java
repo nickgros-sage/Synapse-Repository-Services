@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -61,8 +62,6 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 	
 	public static final int MAX_LOCATIONS_PER_PROJECT = 10;
 
-	private static final String EXTERNAL_STORAGE_HELP = "http://docs.synapse.org/articles/custom_storage_location.html for more information on how to create a new external upload destination.";
-
 	@Autowired
 	private ProjectSettingsDAO projectSettingsDao;
 
@@ -83,7 +82,7 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 
 	@Autowired
 	private UserProfileManager userProfileManager;
-	
+
 	@Autowired
 	private FileHandleDao fileHandleDao;
 
@@ -252,67 +251,67 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 		}
 		return storageLocationDAO.get(storageLocationId);
 	}
-	
+
 	@Override
 	public MergeStorageLocationsResponse mergeDuplicateStorageLocations(UserInfo userInfo) throws DatastoreException, UnauthorizedException {
 		ValidateArgument.required(userInfo, "userInfo");
-		
+
 		if (!userInfo.isAdmin()) {
 			throw new UnauthorizedException("Only administrators can invoke this service");
 		}
-		
+
 		// Maps a duplicate storage location id to the id of the storage location we keep
 		Map<Long, Long> duplicatesMap = new HashMap<>();
-		
+
 		for (Long id : storageLocationDAO.findAllWithDuplicates()) {
-			
+
 			Set<Long> duplicates = storageLocationDAO.findDuplicates(id);
-	
+
 			// Updates all the file handles
 			if (!duplicates.isEmpty()) {
 				fileHandleDao.updateStorageLocationBatch(duplicates, id);
 			}
-			
+
 			duplicates.forEach(duplicateId  -> duplicatesMap.put(duplicateId, id));
 		}
-		
+
 		Long updatedProjectsCount = 0l;
 
 		if (!duplicatesMap.isEmpty()) {
 			// Updates the projects referencing the duplicate ids
 			updatedProjectsCount = removeDuplicateStorageLocationsFromProjects(duplicatesMap);
-			
+
 			// Finally drop the unused storage location settings
 			storageLocationDAO.deleteBatch(duplicatesMap.keySet());
 		}
-		
+
 		MergeStorageLocationsResponse response = new MergeStorageLocationsResponse();
-		
+
 		response.setDuplicateLocationsCount((long) duplicatesMap.size());
 		response.setUpdatedProjectsCount(updatedProjectsCount);
 
 		return response;
 	}
-	
+
 	Long removeDuplicateStorageLocationsFromProjects(Map<Long, Long> duplicatesMap) {
 		Long updatedProjectsCount = 0l;
-		
+
 		Iterator<ProjectSetting> projectSettings = projectSettingsDao.getByType(ProjectSettingsType.upload);
-		
+
 		while (projectSettings.hasNext()) {
 			ProjectSetting projectSetting = projectSettings.next();
-			
+
 			if (!(projectSetting instanceof UploadDestinationListSetting)) {
 				continue;
 			}
-			
+
 			UploadDestinationListSetting projectLocationSetting = (UploadDestinationListSetting) projectSetting;
-			
+
 			List<Long> currentLocations = projectLocationSetting.getLocations();
 			List<Long> updatedLocations = new ArrayList<>(projectLocationSetting.getLocations().size());
-			
+
 			boolean updated = false;
-			
+
 			for (Long projectLocation : currentLocations) {
 				Long keptLocation = duplicatesMap.get(projectLocation);
 				if (keptLocation == null) {
@@ -325,15 +324,15 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 					updated = true;
 				}
 			}
-			
+
 			if (updated) {
 				projectLocationSetting.setLocations(updatedLocations);
 				projectSettingsDao.update(projectLocationSetting);
 				updatedProjectsCount++;
 			}
-			
+
 		}
-		
+
 		return updatedProjectsCount;
 	}
 
@@ -429,8 +428,8 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 			throw new IllegalArgumentException("Did not find Google Cloud object at key " + key + " from bucket " + bucket + ". If the object is in a folder, please make sure you specify a trailing '/' in the base key. " + getExplanation(userProfile, bucket, key));
 		}
 
-
-		inspectUsername(googleCloudStorageClient.getObjectContent(bucket, key), userProfile, bucket, key);
+		BufferedReader content = new BufferedReader(new InputStreamReader(googleCloudStorageClient.getObjectContent(bucket, key), StandardCharsets.UTF_8));
+		inspectUsername(content, ownerAliases, bucket, key);
 	}
 
 

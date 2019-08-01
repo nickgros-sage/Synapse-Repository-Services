@@ -75,9 +75,6 @@ public class ProjectSettingsManagerImplUnitTest {
 	private StorageLocationDAO mockStorageLocationDAO;
 
 	@Mock
-	private BufferedReader mockBufferedReader;
-
-	@Mock
 	private FileHandleDao mockFileHandleDao;
 
 	@Mock
@@ -148,10 +145,10 @@ public class ProjectSettingsManagerImplUnitTest {
 
 	@Test
 	public void testCreateExternalGoogleCloudStorageLocationSetting() throws Exception {
+		when(userProfileManager.getUserProfile(USER_ID.toString())).thenReturn(userProfile);
 		when(synapseGoogleCloudStorageClient.bucketExists(bucketName)).thenReturn(true);
 		when(synapseGoogleCloudStorageClient.getObject(bucketName, "owner.txt")).thenReturn(mock(Blob.class));
-		when(synapseGoogleCloudStorageClient.getObjectContent(bucketName, "owner.txt")).thenReturn(mockBufferedReader);
-		when(mockBufferedReader.readLine()).thenReturn("user-name");
+		when(synapseGoogleCloudStorageClient.getObjectContent(bucketName, "owner.txt")).thenReturn(IOUtils.toInputStream(USER_NAME, StandardCharsets.UTF_8));
 		when(mockStorageLocationDAO.create(externalGoogleCloudStorageLocationSetting)).thenReturn(999L);
 
 		// method under test
@@ -230,9 +227,9 @@ public class ProjectSettingsManagerImplUnitTest {
 
 		when(mockStorageLocationDAO.findAllWithDuplicates()).thenReturn(Arrays.asList(masterLocationId));
 		when(mockStorageLocationDAO.findDuplicates(masterLocationId)).thenReturn(duplicateLocationIds);
-		
+
 		List<ProjectSetting> projectSettings = Collections.emptyList();
-		
+
 		when(mockProjectSettingDao.getByType(any())).thenReturn(projectSettings.iterator());
 
 		// Call under test
@@ -266,9 +263,9 @@ public class ProjectSettingsManagerImplUnitTest {
 
 		when(mockStorageLocationDAO.findAllWithDuplicates()).thenReturn(Arrays.asList(masterLocationId));
 		when(mockStorageLocationDAO.findDuplicates(masterLocationId)).thenReturn(duplicateLocationIds);
-		
+
 		List<ProjectSetting> projectSettings = Collections.singletonList(projectSetting);
-		
+
 		when(mockProjectSettingDao.getByType(any())).thenReturn(projectSettings.iterator());
 
 		// Call under test
@@ -305,9 +302,9 @@ public class ProjectSettingsManagerImplUnitTest {
 
 		when(mockStorageLocationDAO.findAllWithDuplicates()).thenReturn(Arrays.asList(masterLocationId));
 		when(mockStorageLocationDAO.findDuplicates(masterLocationId)).thenReturn(duplicateLocationIds);
-		
+
 		List<ProjectSetting> projectSettings = Collections.singletonList(projectSetting);
-		
+
 		when(mockProjectSettingDao.getByType(any())).thenReturn(projectSettings.iterator());
 		when(mockProjectSettingDao.update(any())).thenReturn(projectSettingUpdated);
 
@@ -333,7 +330,7 @@ public class ProjectSettingsManagerImplUnitTest {
 
 		UploadDestinationListSetting projectSetting = new UploadDestinationListSetting();
 		projectSetting.setLocations(Arrays.asList(masterLocationId));
-		
+
 		List<ProjectSetting> projectSettings = Collections.singletonList(projectSetting);
 
 		when(mockProjectSettingDao.getByType(any())).thenReturn(projectSettings.iterator());
@@ -345,7 +342,7 @@ public class ProjectSettingsManagerImplUnitTest {
 		verify(mockProjectSettingDao, never()).update(any());
 
 	}
-	
+
 	@Test
 	public void testRemoveDuplicateStorageLocationsFromProjectsWithUpdate() {
 
@@ -359,7 +356,7 @@ public class ProjectSettingsManagerImplUnitTest {
 
 		UploadDestinationListSetting projectSettingUpdated = new UploadDestinationListSetting();
 		projectSettingUpdated.setLocations(Arrays.asList(masterLocationId));
-		
+
 		List<ProjectSetting> projectSettings = Collections.singletonList(projectSetting);
 
 		when(mockProjectSettingDao.getByType(any())).thenReturn(projectSettings.iterator());
@@ -388,7 +385,7 @@ public class ProjectSettingsManagerImplUnitTest {
 		projectSettingUpdated.setLocations(Arrays.asList(masterLocationId));
 
 		List<ProjectSetting> projectSettings = Collections.singletonList(projectSetting);
-		
+
 		when(mockProjectSettingDao.getByType(any())).thenReturn(projectSettings.iterator());
 		when(mockProjectSettingDao.update(any())).thenReturn(projectSettingUpdated);
 
