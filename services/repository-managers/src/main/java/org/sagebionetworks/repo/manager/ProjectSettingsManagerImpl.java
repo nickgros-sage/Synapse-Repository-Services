@@ -125,9 +125,9 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 	}
 
 	@Override
-	public List<UploadDestinationLocation> getUploadDestinationLocations(UserInfo userInfo, List<Long> locations) throws DatastoreException,
+	public List<UploadDestinationLocation> getUploadDestinationLocations(UserInfo userInfo, List<Long> storageLocationIds) throws DatastoreException,
 			NotFoundException {
-		return storageLocationDAO.getUploadDestinationLocations(locations);
+		return storageLocationDAO.getUploadDestinationLocations(storageLocationIds);
 	}
 
 	@Override
