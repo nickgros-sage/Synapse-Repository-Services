@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -93,20 +94,17 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 	@Override
 	public ProjectSetting getProjectSetting(UserInfo userInfo, String id) throws DatastoreException, NotFoundException {
 		ProjectSetting projectSetting = projectSettingsDao.get(id);
-		if (projectSetting == null) {
-			throw new NotFoundException("Project setting with ID: " + id +  " not found.");
-		}
 		if (!authorizationManager.canAccess(userInfo, projectSetting.getProjectId(), ObjectType.ENTITY, ACCESS_TYPE.READ).isAuthorized()) {
-			throw new UnauthorizedException("User " + userInfo.getId() + " does not have READ access on the project this setting applies to.");
+			throw new UnauthorizedException("The current user does not have READ access on the project this setting applies to.");
 		}
 		return projectSetting;
 	}
 
 	@Override
-	public ProjectSetting getProjectSettingByProjectAndType(UserInfo userInfo, String projectId, ProjectSettingsType type)
+	public Optional<ProjectSetting> getProjectSettingByProjectAndType(UserInfo userInfo, String projectId, ProjectSettingsType type)
 			throws DatastoreException, NotFoundException {
 		if (!authorizationManager.canAccess(userInfo, projectId, ObjectType.ENTITY, ACCESS_TYPE.READ).isAuthorized()) {
-			throw new UnauthorizedException("User " + userInfo.getId() + " does not have READ access on the project " + projectId + ".");
+			throw new UnauthorizedException("The current user does not have READ access on the project " + projectId + ".");
 		}
 		return projectSettingsDao.get(projectId, type);
 	}
@@ -125,7 +123,7 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 		// get the first available project setting of the correct type
 		ProjectSetting projectSetting = projectSettingsDao.get(nodePathIds, type);
 		if (projectSetting != null && !expectedType.isInstance(projectSetting)) {
-			throw new DatastoreException("Settings type for '" + type + "' is not of type " + expectedType.getName());
+			throw new IllegalArgumentException("Settings type for '" + type + "' is not of type " + expectedType.getName());
 		}
 		return (T) projectSetting;
 	}
