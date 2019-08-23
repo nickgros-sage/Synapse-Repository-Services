@@ -31,12 +31,13 @@ import org.sagebionetworks.repo.model.ProjectSettingsDAO;
 import org.sagebionetworks.repo.model.StorageLocationDAO;
 import org.sagebionetworks.repo.model.UnauthorizedException;
 import org.sagebionetworks.repo.model.UserInfo;
-import org.sagebionetworks.repo.model.UserProfile;
 import org.sagebionetworks.repo.model.dao.FileHandleDao;
 import org.sagebionetworks.repo.model.file.UploadDestinationLocation;
 import org.sagebionetworks.repo.model.file.UploadType;
 import org.sagebionetworks.repo.model.jdo.KeyFactory;
 import org.sagebionetworks.repo.model.migration.MergeStorageLocationsResponse;
+import org.sagebionetworks.repo.model.principal.AliasType;
+import org.sagebionetworks.repo.model.principal.PrincipalAlias;
 import org.sagebionetworks.repo.model.principal.PrincipalAliasDAO;
 import org.sagebionetworks.repo.model.project.ExternalGoogleCloudStorageLocationSetting;
 import org.sagebionetworks.repo.model.project.ExternalObjectStorageLocationSetting;
@@ -84,9 +85,6 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 
 	@Autowired
 	private SynapseGoogleCloudStorageClient googleCloudStorageClient;
-
-	@Autowired
-	private UserProfileManager userProfileManager;
 
 	@Autowired
 	private FileHandleDao fileHandleDao;
@@ -180,14 +178,14 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 			ValidateArgument.requirement(InternetDomainName.isValid(externalS3StorageLocationSetting.getBucket()), "Invalid Bucket Name");
 
 			validateS3BucketAccess(externalS3StorageLocationSetting);
-			validateS3BucketOwnership(externalS3StorageLocationSetting, getBucketOwnerAliases(userInfo.getId().toString()));
+			validateS3BucketOwnership(externalS3StorageLocationSetting, getBucketOwnerAliases(userInfo.getId()));
 		} else if (storageLocationSetting instanceof ExternalGoogleCloudStorageLocationSetting) {
 			ExternalGoogleCloudStorageLocationSetting externalGoogleCloudStorageLocationSetting = (ExternalGoogleCloudStorageLocationSetting) storageLocationSetting;
 			//A valid bucket name must also be a valid domain name
 			ValidateArgument.requirement(InternetDomainName.isValid(externalGoogleCloudStorageLocationSetting.getBucket()), "Invalid Bucket Name");
 
 			externalGoogleCloudStorageLocationSetting.setUploadType(UploadType.GOOGLECLOUDSTORAGE);
-			validateGoogleCloudBucketOwnership(externalGoogleCloudStorageLocationSetting, getBucketOwnerAliases(userInfo.getId().toString()));
+			validateGoogleCloudBucketOwnership(externalGoogleCloudStorageLocationSetting, getBucketOwnerAliases(userInfo.getId()));
 		} else if (storageLocationSetting instanceof ExternalStorageLocationSetting) {
 			ExternalStorageLocationSetting externalStorageLocationSetting = (ExternalStorageLocationSetting) storageLocationSetting;
 			ValidateArgument.required(externalStorageLocationSetting.getUrl(), "url");
@@ -377,7 +375,7 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 		s3client.getRegionForBucket(externalS3StorageLocationSetting.getBucket());
 	}
 
-	private void validateS3BucketOwnership(ExternalS3StorageLocationSetting externalS3StorageLocationSetting, List<String> ownerAliases)
+	private void validateS3BucketOwnership(ExternalS3StorageLocationSetting externalS3StorageLocationSetting, List<PrincipalAlias> ownerAliases)
 			throws IOException, NotFoundException {
 		// check the ownership of the S3 bucket against the user
 		String bucket = externalS3StorageLocationSetting.getBucket();
@@ -407,7 +405,7 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 		inspectUsername(reader, ownerAliases, bucket, key);
 	}
 
-	private void validateGoogleCloudBucketOwnership(ExternalGoogleCloudStorageLocationSetting externalGoogleCloudStorageLocationSetting, List<String> ownerAliases)
+	private void validateGoogleCloudBucketOwnership(ExternalGoogleCloudStorageLocationSetting externalGoogleCloudStorageLocationSetting, List<PrincipalAlias> ownerAliases)
 			throws IOException, NotFoundException {
 		String bucket = externalGoogleCloudStorageLocationSetting.getBucket();
 		String key = (externalGoogleCloudStorageLocationSetting.getBaseKey() == null ? "" : externalGoogleCloudStorageLocationSetting.getBaseKey())
@@ -434,7 +432,7 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 	}
 
 
-	void inspectUsername(BufferedReader reader, List<String> expectedAliases, String bucket, String key) throws IOException {
+	void inspectUsername(BufferedReader reader, List<PrincipalAlias> expectedAliases, String bucket, String key) throws IOException {
 		String actualUsername;
 		try {
 			actualUsername = reader.readLine();
@@ -456,10 +454,10 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 		}
 	}
 
-	private boolean checkForCorrectName(List<String> allowedNames, String actualUsername) {
+	private boolean checkForCorrectName(List<PrincipalAlias> allowedNames, String actualUsername) {
 		if (allowedNames != null) {
-			for (String name : allowedNames) {
-				if (name.equalsIgnoreCase(actualUsername)) {
+			for (PrincipalAlias name : allowedNames) {
+				if (name.getAlias().equalsIgnoreCase(actualUsername)) {
 					return true;
 				}
 			}
@@ -473,19 +471,22 @@ public class ProjectSettingsManagerImpl implements ProjectSettingsManager {
 	 * @param userId
 	 * @return
 	 */
-	private List<String> getBucketOwnerAliases(String userId) {
-		UserProfile userProfile = userProfileManager.getUserProfile(userId);
-		List<String> ownerAliases = new ArrayList<>();
-		ownerAliases.add(userProfile.getUserName());
-		ownerAliases.addAll(userProfile.getEmails());
-		return ownerAliases;
+	private List<PrincipalAlias> getBucketOwnerAliases(Long userId) {
+		return principalAliasDAO.listPrincipalAliases(userId, AliasType.USER_NAME, AliasType.USER_EMAIL);
 	}
 
 	private static final String EXTERNAL_STORAGE_HELP = "http://docs.synapse.org/articles/custom_storage_location.html for more information on how to create a new external upload destination.";
 	private static final String SECURITY_EXPLANATION = "For security purposes, Synapse needs to establish that %s has permission to write to the bucket. Please create an object in bucket '%s' with key '%s' that contains the text '%s'. Also see "
 			+ EXTERNAL_STORAGE_HELP;
 
-	private static String getExplanation(List<String> aliases, String bucket, String key) {
-		return String.format(SECURITY_EXPLANATION, aliases.get(0), bucket, key, aliases.get(0));
+	private static String getExplanation(List<PrincipalAlias> aliases, String bucket, String key) {
+		String username = aliases.get(0).getAlias();
+		for (PrincipalAlias pa : aliases) {
+			if (pa.getType().equals(AliasType.USER_NAME)) {
+				username = pa.getAlias();
+				break;
+			}
+		}
+		return String.format(SECURITY_EXPLANATION, username, bucket, key, username);
 	}
 }
