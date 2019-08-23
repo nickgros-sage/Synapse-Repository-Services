@@ -75,6 +75,7 @@ import org.sagebionetworks.repo.model.entity.query.EntityFieldName;
 import org.sagebionetworks.repo.model.entity.query.EntityQuery;
 import org.sagebionetworks.repo.model.entity.query.EntityQueryUtils;
 import org.sagebionetworks.repo.model.entity.query.Operator;
+import org.sagebionetworks.repo.model.file.FileHandle;
 import org.sagebionetworks.repo.model.file.S3FileHandle;
 import org.sagebionetworks.repo.model.principal.TypeFilter;
 import org.sagebionetworks.repo.model.quiz.PassingRecord;
@@ -780,7 +781,7 @@ public class IT500SynapseJavaClient {
 
 		// Get the profile to update.
 		UserProfile profile = synapseOne.getMyProfile();
-		S3FileHandle fileHandle = synapseOne.multipartUpload(originalFile, null, true, false);
+		FileHandle fileHandle = synapseOne.multipartUpload(originalFile, null, true, false);
 		profile.setProfilePicureFileHandleId(fileHandle.getId());
 		synapseOne.updateMyProfile(profile);
 		profile = synapseOne.getMyProfile();
