@@ -212,17 +212,6 @@ public class ProjectSettingsManagerImplUnitTest {
 	}
 
 	@Test
-	public void getProjectSettingForNodeWrongInstanceType() {
-		EntityHeader projectHeader = new EntityHeader();
-		projectHeader.setId(PROJECT_ID);
-		when(mockNodeManager.getNodePathAsAdmin(NODE_ID)).thenReturn(Collections.singletonList(projectHeader));
-		when(mockProjectSettingDao.get(eq(Collections.singletonList(Long.valueOf(PROJECT_ID))), eq(ProjectSettingsType.upload))).thenReturn(new TestProjectSettingStub());
-
-		// Call under test
-		assertThrows(IllegalArgumentException.class, () -> projectSettingsManagerImpl.getProjectSettingForNode(userInfo, NODE_ID, ProjectSettingsType.upload, UploadDestinationListSetting.class));
-	}
-
-	@Test
 	public void getUploadDestinationLocations() {
 		List<Long> ids = Collections.singletonList(123L);
 		List<UploadDestinationLocation> expected = Collections.singletonList(new UploadDestinationLocation());
@@ -710,66 +699,4 @@ public class ProjectSettingsManagerImplUnitTest {
 		assertTrue(e.getMessage().contains("The username " + USER_NAME + "-incorrect found under"));
 		verify(mockBufferedReader).close();
 	}
-
-	private class TestProjectSettingStub implements ProjectSetting {
-		@Override
-		public String getConcreteType() {
-			return null;
-		}
-
-		@Override
-		public void setConcreteType(String concreteType) {
-
-		}
-
-		@Override
-		public String getId() {
-			return null;
-		}
-
-		@Override
-		public void setId(String id) {
-
-		}
-
-		@Override
-		public String getProjectId() {
-			return null;
-		}
-
-		@Override
-		public void setProjectId(String projectId) {
-
-		}
-
-		@Override
-		public ProjectSettingsType getSettingsType() {
-			return null;
-		}
-
-		@Override
-		public void setSettingsType(ProjectSettingsType settingsType) {
-
-		}
-
-		@Override
-		public String getEtag() {
-			return null;
-		}
-
-		@Override
-		public void setEtag(String etag) {
-
-		}
-
-		@Override
-		public JSONObjectAdapter initializeFromJSONObject(JSONObjectAdapter jsonObjectAdapter) throws JSONObjectAdapterException {
-			return null;
-		}
-
-		@Override
-		public JSONObjectAdapter writeToJSONObject(JSONObjectAdapter jsonObjectAdapter) throws JSONObjectAdapterException {
-			return null;
-		}
-	};
 }
