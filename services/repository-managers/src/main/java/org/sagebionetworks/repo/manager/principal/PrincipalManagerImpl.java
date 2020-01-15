@@ -1,6 +1,5 @@
 package org.sagebionetworks.repo.manager.principal;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -237,26 +236,24 @@ public class PrincipalManagerImpl implements PrincipalManager {
 
 	@WriteTransaction
 	@Override
-	public void clearPrincipalInformation(UserInfo userInfo, Long principalToClear) {
+	public void redactPrincipalInformation(UserInfo userInfo, Long principalToRedact) {
 		UserInfo.validateUserInfo(userInfo);
 		if (!userInfo.isAdmin()) {
-			throw new UnauthorizedException("Only admins may clear user information");
+			throw new UnauthorizedException("Only admins may redact user information. To request a redaction of your profile information, send an email to synapseInfo@sagebase.org");
 		}
 
-		ValidateArgument.required(principalToClear, "principalToClear");
+		ValidateArgument.required(principalToRedact, "principalToRedact");
 
 		// Remove all the aliases from the account
-		boolean aliasesRemoved = principalAliasDAO.removeAllAliasFromPrincipal(principalToClear);
+		boolean aliasesRemoved = principalAliasDAO.removeAllAliasFromPrincipal(principalToRedact);
 		if (!aliasesRemoved) {
-			throw new DatastoreException("Removed zero aliases from principal: " + principalToClear + ". A principal record should have at least one alias.");
+			throw new DatastoreException("Removed zero aliases from principal: " + principalToRedact + ". A principal record should have at least one alias.");
 		}
 
 		// The email address that this account will now use:
-		String gdprEmail = "gdpr-synapse+" + principalToClear + "@sagebase.org";
-
-		// Set the new email address for the user
+		String gdprEmail = "gdpr-synapse+" + principalToRedact + "@sagebase.org";
 		PrincipalAlias emailAlias = new PrincipalAlias();
-		emailAlias.setPrincipalId(principalToClear);
+		emailAlias.setPrincipalId(principalToRedact);
 		emailAlias.setAlias(gdprEmail);
 		emailAlias.setType(AliasType.USER_EMAIL);
 		emailAlias = principalAliasDAO.bindAliasToPrincipal(emailAlias);
@@ -264,27 +261,17 @@ public class PrincipalManagerImpl implements PrincipalManager {
 		// Set the new email address to be the user's notification email
 		notificationEmailDao.update(emailAlias);
 
-		UserProfile profile = userProfileDAO.get(principalToClear.toString());
-		profile.setEmail(gdprEmail);
-		profile.setEmails(Collections.singletonList(gdprEmail));
-		profile.setFirstName("");
-		profile.setLastName("");
-		profile.setOpenIds(Collections.emptyList());
-		profile.setOwnerId(principalToClear.toString());
-		profile.setUserName(principalToClear.toString());
+		UserProfile profile = userProfileDAO.get(principalToRedact.toString());
+		// Turn notifications off
 		Settings notificationSettings = new Settings();
 		notificationSettings.setSendEmailNotifications(false);
 		profile.setNotificationSettings(notificationSettings);
-		profile.setDisplayName(null);
-		profile.setIndustry(null);
-		profile.setProfilePicureFileHandleId(null);
-		profile.setLocation(null);
-		profile.setCompany(null);
-		profile.setPosition(null);
+		// Set the user state to "redacted"
+		profile.setIsRedacted(true);
 		userProfileDAO.update(profile);
 
 		// Reset the password
-		authManager.setPassword(principalToClear, UUID.randomUUID().toString());
+		authManager.setPassword(principalToRedact, UUID.randomUUID().toString());
 	}
 	
 	private void assertNotQuarantinedEmail(String email, String messageType) {

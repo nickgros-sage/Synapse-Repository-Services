@@ -648,7 +648,7 @@ public class PrincipalManagerImplUnitTest {
 	}
 
 	@Test
-	public void clearUserInformationSuccess() {
+	public void redactUserInformationSuccess() {
 		String expectedEmail = "gdpr-synapse+" + USER_ID + "@sagebase.org";
 
 		PrincipalAlias expectedEmailAlias = new PrincipalAlias();
@@ -657,23 +657,10 @@ public class PrincipalManagerImplUnitTest {
 		expectedEmailAlias.setType(AliasType.USER_EMAIL);
 
 		UserProfile expectedProfile = new UserProfile();
-		expectedProfile.setEmail(expectedEmail);
-		expectedProfile.setEmails(Collections.singletonList(expectedEmail));
-		expectedProfile.setFirstName("");
-		expectedProfile.setLastName("");
-		expectedProfile.setOpenIds(Collections.emptyList());
-		expectedProfile.setUserName(USER_ID.toString());
-		expectedProfile.setOwnerId(USER_ID.toString());
+		expectedProfile.setIsRedacted(true);
 		Settings notificationSettings = new Settings();
 		notificationSettings.setSendEmailNotifications(false);
 		expectedProfile.setNotificationSettings(notificationSettings);
-		expectedProfile.setDisplayName(null);
-		expectedProfile.setIndustry(null);
-		expectedProfile.setProfilePicureFileHandleId(null);
-		expectedProfile.setLocation(null);
-		expectedProfile.setCompany(null);
-		expectedProfile.setPosition(null);
-
 
 		when(mockPrincipalAliasDAO.removeAllAliasFromPrincipal(USER_ID)).thenReturn(true);
 		when(mockPrincipalAliasDAO.bindAliasToPrincipal(expectedEmailAlias)).thenReturn(expectedEmailAlias);
@@ -683,7 +670,7 @@ public class PrincipalManagerImplUnitTest {
 		doNothing().when(mockAuthManager).setPassword(eq(USER_ID), anyString());
 
 		// Method under test
-		manager.clearPrincipalInformation(adminUserInfo, USER_ID);
+		manager.redactPrincipalInformation(adminUserInfo, USER_ID);
 
 
 		verify(mockPrincipalAliasDAO).removeAllAliasFromPrincipal(USER_ID);
@@ -694,25 +681,25 @@ public class PrincipalManagerImplUnitTest {
 	}
 
 	@Test
-	public void clearUserInformationNonAdmin() {
-		assertThrows(UnauthorizedException.class, () -> manager.clearPrincipalInformation(new UserInfo(false), USER_ID));
+	public void redactUserInformationNonAdmin() {
+		assertThrows(UnauthorizedException.class, () -> manager.redactPrincipalInformation(new UserInfo(false), USER_ID));
 	}
 
 
 	@Test
-	public void clearUserInformationNullUserId() {
+	public void redactUserInformationNullUserId() {
 		// Method under test
 		assertThrows(IllegalArgumentException.class,
-				() -> manager.clearPrincipalInformation(adminUserInfo,null));
+				() -> manager.redactPrincipalInformation(adminUserInfo,null));
 
 	}
 
 	@Test
-	public void clearUserInformationNoAliasesRemoved() {
+	public void redactUserInformationNoAliasesRemoved() {
 		when(mockPrincipalAliasDAO.removeAllAliasFromPrincipal(USER_ID)).thenReturn(false);
 		// Method under test
 		assertThrows(DatastoreException.class,
-				() -> manager.clearPrincipalInformation(adminUserInfo, USER_ID),
+				() -> manager.redactPrincipalInformation(adminUserInfo, USER_ID),
 				"Removed zero aliases from principal: " + USER_ID + ". A principal record should have at least one alias.");
 	}
 }

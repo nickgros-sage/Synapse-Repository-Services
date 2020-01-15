@@ -111,5 +111,5 @@ public interface PrincipalManager {
 	 * @param userInfo UserInfo of the caller. Must be an administrator
 	 * @param principalToClear The principal ID of the user whose information should be cleared
 	 */
-	void clearPrincipalInformation(UserInfo userInfo, Long principalToClear);
+	void redactPrincipalInformation(UserInfo userInfo, Long principalToClear);
 }

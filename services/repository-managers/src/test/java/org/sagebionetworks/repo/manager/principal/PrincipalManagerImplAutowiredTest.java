@@ -2,8 +2,9 @@ package org.sagebionetworks.repo.manager.principal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.sagebionetworks.repo.model.dao.FileHandleDao;
 import org.sagebionetworks.repo.model.dbo.persistence.DBOCredential;
 import org.sagebionetworks.repo.model.dbo.persistence.DBOTermsOfUseAgreement;
 import org.sagebionetworks.repo.model.file.S3FileHandle;
+import org.sagebionetworks.repo.model.message.Settings;
 import org.sagebionetworks.repo.model.principal.AliasType;
 import org.sagebionetworks.repo.model.principal.PrincipalAlias;
 import org.sagebionetworks.repo.model.principal.PrincipalAliasDAO;
@@ -134,28 +136,37 @@ public class PrincipalManagerImplAutowiredTest {
 		profile.setLocation("Seattle");
 		profile.setOpenIds(Collections.singletonList("OpenID1"));
 		profile.setProfilePicureFileHandleId(fileHandleId);
-		userProfileDAO.update(profile);
+		profile.setIsRedacted(false);
+		Settings notificationSettings = new Settings();
+		notificationSettings.setSendEmailNotifications(true);
+		profile.setNotificationSettings(notificationSettings);
+		profile = userProfileDAO.update(profile);
 
 		UserInfo adminUserInfo = new UserInfo(true);
 
 		// Call under test
-		principalManager.clearPrincipalInformation(adminUserInfo, testUser.getId());
+		principalManager.redactPrincipalInformation(adminUserInfo, testUser.getId());
 
-		String expectedEmail = "gdpr-synapse+" + testUser.getId() + "@sagebase.org";
-		// Verify that information has been cleared.
-		profile = userProfileDAO.get(testUser.getId().toString());
-		assertEquals(expectedEmail, profile.getEmail());
-		assertEquals(Collections.singletonList(expectedEmail), profile.getEmails());
-		assertEquals("", profile.getFirstName());
-		assertEquals("", profile.getLastName());
-		assertEquals(Collections.emptyList(), profile.getOpenIds());
-		assertFalse(profile.getNotificationSettings().getSendEmailNotifications());
-		assertNull(profile.getDisplayName());
-		assertNull(profile.getIndustry());
-		assertNull(profile.getProfilePicureFileHandleId());
-		assertNull(profile.getLocation());
-		assertNull(profile.getCompany());
-		assertNull(profile.getPosition());
+		// Verify fields
+		UserProfile redactedProfile = userProfileDAO.get(testUser.getId().toString());
+		assertEquals(redactedProfile.getEmail(), profile.getEmail());
+		assertEquals(redactedProfile.getEmails(), profile.getEmails());
+		assertEquals(redactedProfile.getFirstName(), profile.getFirstName());
+		assertEquals(redactedProfile.getLastName(), profile.getLastName());
+		assertEquals(redactedProfile.getOpenIds(), profile.getOpenIds());
+		assertEquals(redactedProfile.getDisplayName(), profile.getDisplayName());
+		assertEquals(redactedProfile.getIndustry(), profile.getIndustry());
+		assertEquals(redactedProfile.getProfilePicureFileHandleId(), profile.getProfilePicureFileHandleId());
+		assertEquals(redactedProfile.getLocation(), profile.getLocation());
+		assertEquals(redactedProfile.getCompany(), profile.getCompany());
+		assertEquals(redactedProfile.getPosition(), profile.getPosition());
+
+		assertTrue(redactedProfile.getIsRedacted());
+		// Send notifications should be FALSE
+		assertFalse(redactedProfile.getNotificationSettings().getSendEmailNotifications());
+		assertNotEquals(redactedProfile.getNotificationSettings().getSendEmailNotifications(), profile.getNotificationSettings().getSendEmailNotifications());
+
+		// The only principal alias should be the redaction email
 		List<PrincipalAlias> pas = principalAliasDao.listPrincipalAliases(testUser.getId());
 		assertEquals(1, pas.size());
 		assertEquals(AliasType.USER_EMAIL, pas.get(0).getType());

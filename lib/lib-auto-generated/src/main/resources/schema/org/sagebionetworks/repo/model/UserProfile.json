@@ -182,6 +182,10 @@
 			},
 			"uniqueItems": true
 		},
+		"isRedacted": {
+			"type": "boolean",
+			"description": "Whether the user's information has been redacted."
+		},
 		"createdOn": {
 			"type": "string",
 			"format": "date-time",
