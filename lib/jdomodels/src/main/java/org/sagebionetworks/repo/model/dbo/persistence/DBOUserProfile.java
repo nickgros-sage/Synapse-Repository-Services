@@ -10,6 +10,7 @@ import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PRO
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PROFILE_LAST_NAME;
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PROFILE_PICTURE_ID;
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PROFILE_PROPS_BLOB;
+import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PROFILE_REDACTED;
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.DDL_FILE_USER_PROFILE;
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.TABLE_USER_PROFILE;
 
@@ -38,7 +39,8 @@ public class DBOUserProfile implements MigratableDatabaseObject<DBOUserProfile, 
 	private byte[] firstName;
 	private byte[] lastName;
 	private Long createdOn;
-	
+	private boolean redacted;
+
 	public static final String OWNER_ID_FIELD_NAME = "ownerId";
 
 	private static FieldColumn[] FIELDS = new FieldColumn[] {
@@ -48,8 +50,9 @@ public class DBOUserProfile implements MigratableDatabaseObject<DBOUserProfile, 
 		new FieldColumn("pictureId", COL_USER_PROFILE_PICTURE_ID),
 		new FieldColumn("emailNotification", COL_USER_PROFILE_EMAIL_NOTIFICATION),
 		new FieldColumn("firstName", COL_USER_PROFILE_FIRST_NAME),
-		new FieldColumn("lastName", COL_USER_PROFILE_LAST_NAME)
-		};
+		new FieldColumn("lastName", COL_USER_PROFILE_LAST_NAME),
+		new FieldColumn("redacted", COL_USER_PROFILE_REDACTED)
+	};
 
 
 	@Override
@@ -78,6 +81,7 @@ public class DBOUserProfile implements MigratableDatabaseObject<DBOUserProfile, 
 				if (blob != null){
 					up.setLastName(blob.getBytes(1, (int) blob.length()));
 				}
+				up.setRedacted(rs.getBoolean(COL_USER_PROFILE_REDACTED));
 				return up;
 			}
 
@@ -188,6 +192,14 @@ public class DBOUserProfile implements MigratableDatabaseObject<DBOUserProfile, 
 		this.pictureId = pictureId;
 	}
 
+	public boolean getRedacted() {
+		return redacted;
+	}
+
+	public void setRedacted(boolean redacted) {
+		this.redacted = redacted;
+	}
+
 
 	public Long getCreatedOn() {
 		return createdOn;
@@ -220,6 +232,7 @@ public class DBOUserProfile implements MigratableDatabaseObject<DBOUserProfile, 
 		if (getClass() != obj.getClass())
 			return false;
 		DBOUserProfile other = (DBOUserProfile) obj;
+		if (this.redacted != other.redacted) return false;
 		if (eTag == null) {
 			if (other.eTag != null)
 				return false;

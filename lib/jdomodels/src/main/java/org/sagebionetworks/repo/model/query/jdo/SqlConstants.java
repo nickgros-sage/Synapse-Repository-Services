@@ -56,6 +56,7 @@ public class SqlConstants {
 	public static final String COL_USER_PROFILE_EMAIL_NOTIFICATION	= "SEND_EMAIL_NOTIFICATION";
 	public static final String COL_USER_PROFILE_FIRST_NAME		= "FIRST_NAME";
 	public static final String COL_USER_PROFILE_LAST_NAME		= "LAST_NAME";
+	public static final String COL_USER_PROFILE_REDACTED		= "REDACTED";
 	public static final String DDL_FILE_USER_PROFILE			= "schema/UserProfile-ddl.sql";
 
 	// The Project Settings table

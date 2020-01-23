@@ -27,6 +27,11 @@ public class UserProfileUtils {
 		} else {
 			dbo.setOwnerId(Long.parseLong(dto.getOwnerId()));
 		}
+		if (dto.getIsRedacted() == null) {
+			dbo.setRedacted(false);
+		} else {
+			dbo.setRedacted(dto.getIsRedacted());
+		}
 		dbo.seteTag(dto.getEtag());
 		try {
 			dbo.setProperties(JDOSecondaryPropertyUtils.compressObject(X_STREAM, dto));
@@ -74,6 +79,7 @@ public class UserProfileUtils {
 		if(dbo.getPictureId() != null){
 			dto.setProfilePicureFileHandleId(dbo.getPictureId().toString());
 		}
+		dto.setIsRedacted(dbo.getRedacted());
 		if(dto.getNotificationSettings() == null){
 			dto.setNotificationSettings(new Settings());
 		}

@@ -24,7 +24,6 @@ import org.sagebionetworks.repo.model.Favorite;
 import org.sagebionetworks.repo.model.IdList;
 import org.sagebionetworks.repo.model.InvalidModelException;
 import org.sagebionetworks.repo.model.ListWrapper;
-import org.sagebionetworks.repo.model.NextPageToken;
 import org.sagebionetworks.repo.model.ProjectHeaderList;
 import org.sagebionetworks.repo.model.ProjectListSortColumn;
 import org.sagebionetworks.repo.model.ProjectListType;
@@ -87,7 +86,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 	public UserProfile getMyOwnUserProfile(Long userId) 
 			throws DatastoreException, UnauthorizedException, NotFoundException {
 		UserInfo userInfo = userManager.getUserInfo(userId);
-		return userProfileManager.getUserProfile(userInfo.getId().toString());
+		UserProfile userProfile = userProfileManager.getUserProfile(userInfo.getId().toString());
+		UserProfileManagerUtils.redactProfileIfRedactedAndNonAdmin(userInfo, userProfile);
+		return userProfile;
 	}
 	
 	@Override
@@ -95,6 +96,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 			throws DatastoreException, UnauthorizedException, NotFoundException {
 		UserInfo userInfo = userManager.getUserInfo(userId);
 		UserProfile userProfile = userProfileManager.getUserProfile(profileId);
+		// If the user's information has been redacted (e.g. GDPR), then only the admin should be able to see the information
+		UserProfileManagerUtils.redactProfileIfRedactedAndNonAdmin(userInfo, userProfile);
 		UserProfileManagerUtils.clearPrivateFields(userInfo, userProfile);
 		return userProfile;
 	}
@@ -127,6 +130,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 		UserInfo userInfo = userManager.getUserInfo(userId);
 		ListWrapper<UserProfile> results = userProfileManager.list(ids);
 		for (UserProfile profile : results.getList()) {
+			UserProfileManagerUtils.redactProfileIfRedactedAndNonAdmin(userInfo, profile);
 			UserProfileManagerUtils.clearPrivateFields(userInfo, profile);
 		}
 		return results;
@@ -265,6 +269,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 	 */
 	@Override
 	public String getUserProfileImage(Long userId, String profileId) throws NotFoundException {
+		// TODO: Handle redaction case
 		UserInfo userInfo = userManager.getUserInfo(userId);
 		return userProfileManager.getUserProfileImageUrl(userInfo, profileId);
 	}
@@ -275,6 +280,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 	 */
 	@Override
 	public String getUserProfileImagePreview(Long userId, String profileId) throws NotFoundException {
+		// TODO: Handle redaction case
 		UserInfo userInfo = userManager.getUserInfo(userId);
 		return userProfileManager.getUserProfileImagePreviewUrl(userInfo, profileId);
 	}
@@ -307,7 +313,14 @@ public class UserProfileServiceImpl implements UserProfileService {
 	@Override
 	public UserBundle getMyOwnUserBundle(Long userId, int mask)
 			throws DatastoreException, UnauthorizedException, NotFoundException {
-		return getUserBundleWithAllPrivateFields(userId, mask);
+		UserBundle result = getUserBundleWithAllPrivateFields(userId, mask);
+		// If the user's information has been redacted (e.g. GDPR), then only the admin should be able to see the information
+		if (result.getUserProfile() != null &&
+				result.getUserProfile().getIsRedacted() != null &&
+				result.getUserProfile().getIsRedacted()) {
+			UserProfileManagerUtils.redactInfoFromBundle(result);
+		}
+		return result;
 	}
 	
 	private static int USER_PROFILE_MASK = 0x1;
@@ -352,6 +365,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 			throws DatastoreException, UnauthorizedException, NotFoundException {
 		UserBundle result = getUserBundleWithAllPrivateFields(Long.parseLong(profileId), mask);
 		UserInfo userInfo = userManager.getUserInfo(userId);
+		// If the user's information has been redacted (e.g. GDPR), then only the admin should be able to see the information
+		UserProfileManagerUtils.redactProfileIfRedactedAndNonAdmin(userInfo, result.getUserProfile());
 		UserProfileManagerUtils.clearPrivateFields(userInfo, result.getUserProfile());
 		if (!UserProfileManagerUtils.isOwnerACTOrAdmin(userInfo, profileId)) {
 			if (BooleanUtils.isTrue(result.getIsVerified())) {

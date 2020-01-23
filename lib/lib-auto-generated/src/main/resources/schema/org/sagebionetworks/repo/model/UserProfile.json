@@ -184,7 +184,14 @@
 		},
 		"isRedacted": {
 			"type": "boolean",
-			"description": "Whether the user's information has been redacted."
+			"title": "Is Redacted",
+			"description": "Whether the user's information has been redacted.",
+			"links": [
+				{
+					"rel": "describedby",
+					"href": "http://synapse.sagebase.org/access/public"
+				}
+			]
 		},
 		"createdOn": {
 			"type": "string",

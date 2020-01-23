@@ -244,14 +244,17 @@ public class PrincipalManagerImpl implements PrincipalManager {
 
 		ValidateArgument.required(principalToRedact, "principalToRedact");
 
+		UserProfile profile = userProfileDAO.get(principalToRedact.toString());
+		// The email address that this account will now use:
+		String gdprEmail = "gdpr-synapse+" + principalToRedact + "@sagebase.org";
+		profile.getEmails().add(0, gdprEmail);
+
 		// Remove all the aliases from the account
 		boolean aliasesRemoved = principalAliasDAO.removeAllAliasFromPrincipal(principalToRedact);
 		if (!aliasesRemoved) {
 			throw new DatastoreException("Removed zero aliases from principal: " + principalToRedact + ". A principal record should have at least one alias.");
 		}
 
-		// The email address that this account will now use:
-		String gdprEmail = "gdpr-synapse+" + principalToRedact + "@sagebase.org";
 		PrincipalAlias emailAlias = new PrincipalAlias();
 		emailAlias.setPrincipalId(principalToRedact);
 		emailAlias.setAlias(gdprEmail);
@@ -261,7 +264,6 @@ public class PrincipalManagerImpl implements PrincipalManager {
 		// Set the new email address to be the user's notification email
 		notificationEmailDao.update(emailAlias);
 
-		UserProfile profile = userProfileDAO.get(principalToRedact.toString());
 		// Turn notifications off
 		Settings notificationSettings = new Settings();
 		notificationSettings.setSendEmailNotifications(false);

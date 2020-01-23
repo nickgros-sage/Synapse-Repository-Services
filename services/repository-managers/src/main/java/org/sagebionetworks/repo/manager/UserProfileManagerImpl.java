@@ -325,6 +325,7 @@ public class UserProfileManagerImpl implements UserProfileManager {
 		if(profile == null) throw new IllegalArgumentException("UserProfile cannot be null");
 		if(profile.getOwnerId() == null) throw new IllegalArgumentException("OwnerId cannot be null");
 		if(profile.getUserName() == null) throw new IllegalArgumentException("Username cannot be null");
+		if(profile.getIsRedacted() != null && profile.getIsRedacted()) throw new IllegalArgumentException("isRedacted cannot be set to true"); // must use the admin call
 	}
 	
 	private void clearAliasFields(UserProfile profile) {

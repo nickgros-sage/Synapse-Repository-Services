@@ -287,10 +287,10 @@ public interface SynapseAdminClient extends SynapseClient {
 	OAuthClient updateOAuthClientVerifiedStatus(String clientId, boolean status) throws SynapseException;
 
 	/**
-	 * Removes all user information to comply with data removal requests.
+	 * Redacts all user information to comply with data removal requests.
 	 * @param principalId
 	 * @throws SynapseException
 	 */
-	void clearUserInformation(String principalId) throws SynapseException;
+	void redactUserInformation(String principalId) throws SynapseException;
 
 }

@@ -1,10 +1,14 @@
 package org.sagebionetworks.repo.manager;
 
+import java.util.Collections;
+
 import org.sagebionetworks.repo.manager.team.TeamConstants;
+import org.sagebionetworks.repo.model.UserBundle;
 import org.sagebionetworks.repo.model.UserGroupHeader;
 import org.sagebionetworks.repo.model.UserInfo;
 import org.sagebionetworks.repo.model.UserProfile;
 import org.sagebionetworks.repo.model.verification.VerificationSubmission;
+import org.sagebionetworks.util.ValidateArgument;
 
 public class UserProfileManagerUtils {
 	
@@ -61,7 +65,48 @@ public class UserProfileManagerUtils {
 			}
 		}
 	}
-	
 
+	/**
+	 * If the calling user is not an admin AND the profile is redacted, strip all of the fields of the user profile.
+	 * If the user is an admin or the profile is not redacted, the original user bundle is returned.
+	 * @param userInfo the UserInfo of the caller
+	 * @param userProfile  Note this is treated as MUTABLE. The profile that may contain redacted information.
+	 */
+	public static void redactProfileIfRedactedAndNonAdmin(UserInfo userInfo, UserProfile userProfile) {
+		if (userProfile != null && !userInfo.isAdmin() && userProfile.getIsRedacted() != null && userProfile.getIsRedacted()) {
+			redactInfoFromProfile(userProfile);
+		}
+	}
+
+	/**
+	 * Redact personal information from a UserBundle.
+	 * @param bundle Note this is treated as MUTABLE. The profile that may contain redacted information.
+	 */
+	public static void redactInfoFromBundle(UserBundle bundle) {
+		bundle.setORCID(null);
+		redactInfoFromProfile(bundle.getUserProfile());
+	}
+
+	/**
+	 * Redact personal information from a UserProfile.
+	 * @param profile Note this is treated as MUTABLE. The profile that may contain redacted information.
+	 */
+	public static UserProfile redactInfoFromProfile(UserProfile profile) {
+		ValidateArgument.required("ownerId", profile.getOwnerId());
+
+		String gdprEmail = "gdpr-synapse+" + profile.getOwnerId() + "@sagebase.org";
+		profile.setEmail(gdprEmail);
+		profile.setEmails(Collections.singletonList(gdprEmail));
+		profile.setFirstName("");
+		profile.setLastName("");
+		profile.setOpenIds(Collections.emptyList());
+		profile.setDisplayName(null);
+		profile.setIndustry(null);
+		profile.setProfilePicureFileHandleId(null);
+		profile.setLocation(null);
+		profile.setCompany(null);
+		profile.setPosition(null);
+		profile.setIsRedacted(true);
+		return profile;
+	}
 }
- 

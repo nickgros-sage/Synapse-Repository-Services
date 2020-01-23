@@ -1,11 +1,12 @@
 package org.sagebionetworks.repo.web.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyListOf;
@@ -26,11 +27,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.sagebionetworks.reflection.model.PaginatedResults;
 import org.sagebionetworks.repo.manager.EntityManager;
 import org.sagebionetworks.repo.manager.EntityPermissionsManager;
 import org.sagebionetworks.repo.manager.UserManager;
@@ -44,8 +44,6 @@ import org.sagebionetworks.repo.model.Favorite;
 import org.sagebionetworks.repo.model.IdList;
 import org.sagebionetworks.repo.model.ListWrapper;
 import org.sagebionetworks.repo.model.NextPageToken;
-import org.sagebionetworks.repo.model.ProjectHeader;
-import org.sagebionetworks.repo.model.ProjectHeaderList;
 import org.sagebionetworks.repo.model.ProjectListSortColumn;
 import org.sagebionetworks.repo.model.ProjectListType;
 import org.sagebionetworks.repo.model.UnauthorizedException;
@@ -103,7 +101,7 @@ public class UserProfileServiceTest {
 	@Mock
 	private TokenGenerator mockTokenGenerator;
 	
-	@Before
+	@BeforeEach
 	public void before() throws Exception {
 		MockitoAnnotations.initMocks(this);
 		
@@ -201,7 +199,7 @@ public class UserProfileServiceTest {
 		verify(mockEntityManager).getEntityHeader(userInfo, entityId);
 	}
 
-	@Test(expected=UnauthorizedException.class)
+	@Test
 	public void testAddFavoriteUnauthorized() throws Exception {
 		String entityId = "syn123";
 		when(mockPermissionsManager.hasAccess(entityId, ACCESS_TYPE.READ, userInfo)).thenReturn(AuthorizationStatus.accessDenied(""));
@@ -210,8 +208,7 @@ public class UserProfileServiceTest {
 		fav.setPrincipalId(EXTRA_USER_ID.toString());
 		when(mockUserProfileManager.addFavorite(any(UserInfo.class), anyString())).thenReturn(fav);
 
-		userProfileService.addFavorite(EXTRA_USER_ID, entityId);		
-		fail();
+		assertThrows(UnauthorizedException.class, () -> userProfileService.addFavorite(EXTRA_USER_ID, entityId));
 	}
 	
 	private static IdList singletonIdList(String id) {
@@ -260,11 +257,11 @@ public class UserProfileServiceTest {
 		when(mockUserManager.getUserInfo(EXTRA_USER_ID)).thenReturn(userInfo);
 		when(mockUserProfileManager.getUserProfile(profileId)).thenReturn(userProfile);
 		when(mockUserProfileManager.list(singletonIdList(ownerId))).thenReturn(wrap(userProfile));
-		
+
 		UserProfile someOtherUserProfile = userProfileService.getUserProfileByOwnerId(EXTRA_USER_ID, profileId);
 		assertNull(someOtherUserProfile.getEtag());
 		assertNotNull(someOtherUserProfile.getEmails());
-		
+
 		ListWrapper<UserProfile> lwup = userProfileService.listUserProfiles(EXTRA_USER_ID, singletonIdList(ownerId));
 		assertEquals(1, lwup.getList().size());
 		someOtherUserProfile = lwup.getList().get(0);
@@ -536,7 +533,7 @@ public class UserProfileServiceTest {
 		verify(mockPrincipalPrefixDAO, never()).listPrincipalsForPrefix(anyString(), anyLong(), anyLong());
 	}
 
-	@Test (expected=IllegalArgumentException.class)
+	@Test
 	public void testListPrincipalsForPrefixFilterNull(){
 		String prefix = "aab";
 		TypeFilter filter = null;
@@ -546,7 +543,7 @@ public class UserProfileServiceTest {
 		boolean isIndividual = false;
 		when(mockPrincipalPrefixDAO.listPrincipalsForPrefix(prefix, isIndividual, limit, offset)).thenReturn(expectedResutls);
 		// call under test
-		userProfileService.listPrincipalsForPrefix(prefix, filter, offset, limit);
+		assertThrows(IllegalArgumentException.class, () -> userProfileService.listPrincipalsForPrefix(prefix, filter, offset, limit));
 	}
 	
 	@Test
@@ -557,19 +554,19 @@ public class UserProfileServiceTest {
 		assertEquals(headers, response.getList());
 	}
 	
-	@Test (expected=IllegalArgumentException.class)
+	@Test
 	public void testGetUserGroupHeadersByAliasNullRequest(){
 		aliasList = null;
 		// call under test
-		userProfileService.getUserGroupHeadersByAlias(aliasList);
+		assertThrows(IllegalArgumentException.class, () -> userProfileService.getUserGroupHeadersByAlias(aliasList));
 	}
 	
 	
-	@Test (expected=IllegalArgumentException.class)
+	@Test
 	public void testGetUserGroupHeadersByAliasEmptyList(){
 		aliasList.setList(new LinkedList<String>());
 		// call under test
-		userProfileService.getUserGroupHeadersByAlias(aliasList);
+		assertThrows(IllegalArgumentException.class, () -> userProfileService.getUserGroupHeadersByAlias(aliasList));
 	}
 	
 	@Test
@@ -678,5 +675,130 @@ public class UserProfileServiceTest {
 
 		verify(mockUserProfileManager).getProjects(userInfo, otherUserInfo, teamId, ProjectListType.ALL,
 				ProjectListSortColumn.LAST_ACTIVITY, SortDirection.DESC, nextPageToken);
+	}
+
+
+	@Test
+	public void waefwfafADMIN() throws Exception {
+		String profileId = "someOtherProfileid";
+		String ownerId = "9999";
+		String email = "test@example.com";
+		UserProfile userProfile = new UserProfile();
+		userProfile.setOwnerId(ownerId);
+		userProfile.setEmails(Collections.singletonList(email));
+
+		userInfo = new UserInfo(true, EXTRA_USER_ID);
+		when(mockUserManager.getUserInfo(EXTRA_USER_ID)).thenReturn(userInfo);
+		when(mockUserProfileManager.getUserProfile(profileId)).thenReturn(userProfile);
+		when(mockUserProfileManager.list(singletonIdList(ownerId))).thenReturn(wrap(userProfile));
+
+		UserProfile someOtherUserProfile = userProfileService.getUserProfileByOwnerId(EXTRA_USER_ID, profileId);
+		assertNull(someOtherUserProfile.getEtag());
+		assertNotNull(someOtherUserProfile.getEmails());
+
+		ListWrapper<UserProfile> lwup = userProfileService.listUserProfiles(EXTRA_USER_ID, singletonIdList(ownerId));
+		assertEquals(1, lwup.getList().size());
+		someOtherUserProfile = lwup.getList().get(0);
+		assertNull(someOtherUserProfile.getEtag());
+		assertNotNull(someOtherUserProfile.getEmails());
+	}
+
+	@Test
+	public void getRedactedProfileNonAdmin() {
+		String profileId = "someOtherProfileid";
+		String ownerId = "9999";
+		String email = "test@example.com";
+		UserProfile userProfile = new UserProfile();
+		userProfile.setIsRedacted(true);
+		userProfile.setOwnerId(ownerId);
+		userProfile.setFirstName("First");
+		userProfile.setLastName("Last");
+		userProfile.setEmails(Collections.singletonList(email));
+		when(mockUserManager.getUserInfo(EXTRA_USER_ID)).thenReturn(userInfo);
+		when(mockUserProfileManager.getUserProfile(profileId)).thenReturn(userProfile);
+		when(mockUserProfileManager.list(singletonIdList(ownerId))).thenReturn(wrap(userProfile));
+
+		UserProfile retrievedProfile = userProfileService.getUserProfileByOwnerId(EXTRA_USER_ID, profileId);
+		assertTrue(retrievedProfile.getIsRedacted());
+		assertEquals(userProfile.getUserName(), retrievedProfile.getUserName());
+		assertEquals("", retrievedProfile.getFirstName());
+		assertEquals("", retrievedProfile.getLastName());
+		assertNull(retrievedProfile.getEtag());
+		assertNull(retrievedProfile.getEmails());
+
+		ListWrapper<UserProfile> lwup = userProfileService.listUserProfiles(EXTRA_USER_ID, singletonIdList(ownerId));
+		assertEquals(1, lwup.getList().size());
+		assertEquals(retrievedProfile, lwup.getList().get(0));
+	}
+
+
+	@Test
+	public void getRedactedProfileOwner() {
+		String callerId = EXTRA_USER_ID.toString();
+		String ownerId = EXTRA_USER_ID.toString();
+		String email = "test@example.com";
+		UserProfile userProfile = new UserProfile();
+		userProfile.setIsRedacted(true);
+		userProfile.setOwnerId(ownerId);
+		userProfile.setFirstName("First");
+		userProfile.setLastName("Last");
+		userProfile.setEmails(Collections.singletonList(email));
+		when(mockUserManager.getUserInfo(Long.valueOf(callerId))).thenReturn(userInfo);
+		when(mockUserProfileManager.getUserProfile(callerId)).thenReturn(userProfile);
+		when(mockUserProfileManager.list(singletonIdList(ownerId))).thenReturn(wrap(userProfile));
+
+		UserProfile retrievedProfile = userProfileService.getUserProfileByOwnerId(Long.valueOf(callerId), callerId);
+		assertTrue(retrievedProfile.getIsRedacted());
+		assertEquals(userProfile.getUserName(), retrievedProfile.getUserName());
+		assertEquals("", retrievedProfile.getFirstName());
+		assertEquals("", retrievedProfile.getLastName());
+		assertNull(retrievedProfile.getEtag());
+		assertEquals(1, retrievedProfile.getEmails().size());
+		assertEquals("gdpr-synapse+" + callerId + "@sagebase.org", retrievedProfile.getEmails().get(0));
+
+		ListWrapper<UserProfile> lwup = userProfileService.listUserProfiles(Long.valueOf(callerId), singletonIdList(ownerId));
+		assertEquals(1, lwup.getList().size());
+		assertEquals(retrievedProfile, lwup.getList().get(0));
+	}
+
+	@Test
+	public void getRedactedProfileAdmin() {
+		String profileId = "someOtherProfileid";
+		String ownerId = "9999";
+		String email = "test@example.com";
+		UserProfile userProfile = new UserProfile();
+		userProfile.setIsRedacted(true);
+		userProfile.setOwnerId(ownerId);
+		userProfile.setFirstName("First");
+		userProfile.setUserName(ownerId);
+		userProfile.setLastName("Last");
+		userProfile.setEmails(Collections.singletonList(email));
+
+		userInfo = new UserInfo(true, EXTRA_USER_ID);
+		when(mockUserManager.getUserInfo(EXTRA_USER_ID)).thenReturn(userInfo);
+		when(mockUserProfileManager.getUserProfile(profileId)).thenReturn(userProfile);
+		when(mockUserProfileManager.list(singletonIdList(ownerId))).thenReturn(wrap(userProfile));
+
+		UserProfile retrievedProfile = userProfileService.getUserProfileByOwnerId(EXTRA_USER_ID, profileId);
+		assertTrue(retrievedProfile.getIsRedacted());
+		assertEquals(userProfile.getUserName(), retrievedProfile.getUserName());
+		assertEquals(userProfile.getFirstName(), retrievedProfile.getFirstName());
+		assertEquals(userProfile.getLastName(), retrievedProfile.getLastName());
+		assertNull(retrievedProfile.getEtag());
+		assertEquals(userProfile.getEmails(), retrievedProfile.getEmails());
+
+		ListWrapper<UserProfile> lwup = userProfileService.listUserProfiles(EXTRA_USER_ID, singletonIdList(ownerId));
+		assertEquals(1, lwup.getList().size());
+		assertEquals(retrievedProfile, lwup.getList().get(0));
+	}
+
+	@Test
+	public void getRedactedBundleNonAdmin() {
+
+	}
+
+	@Test
+	public void getRedactedBundleAdmin() {
+
 	}
 }

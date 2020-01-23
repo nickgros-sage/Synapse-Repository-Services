@@ -602,9 +602,9 @@ public class UrlHelpers {
 	public static final String ADMIN_STORAGE_SUMMARY_PER_ENTITY = ADMIN_STORAGE_SUMMARY + "/perEntity";
 
 	/**
-	 * Principal/User information removal for administrators.
+	 * Principal/User information redaction for administrators.
 	 */
-	public static final String ADMIN_REMOVE_USER = ADMIN + "/remove/user/{principalId}";
+	public static final String ADMIN_REDACT_USER = ADMIN + "/redact/user/{principalId}";
 
 	/**
 	 * Public access for Synapse user and group info

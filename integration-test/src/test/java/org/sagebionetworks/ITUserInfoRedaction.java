@@ -2,7 +2,9 @@ package org.sagebionetworks;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -17,10 +19,11 @@ import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.SynapseClientImpl;
 import org.sagebionetworks.client.exceptions.SynapseException;
 import org.sagebionetworks.client.exceptions.SynapseUnauthorizedException;
+import org.sagebionetworks.repo.model.UserBundle;
 import org.sagebionetworks.repo.model.UserProfile;
 import org.sagebionetworks.repo.model.auth.LoginRequest;
 
-public class ITUserInfoRemoval {
+public class ITUserInfoRedaction {
 
 	private static SynapseAdminClient adminClient;
 	private static SynapseClient client;
@@ -54,11 +57,10 @@ public class ITUserInfoRemoval {
 	}
 
 	@Test
-	public void testRemoveUserInfo() throws SynapseException {
+	public void testRedactUserInfo() throws SynapseException {
 		UserProfile profile = client.getMyProfile();
 		profile.setFirstName("First");
 		profile.setLastName("Last");
-		profile.setEmail("email@test.net");
 		profile.setDisplayName("Some display name");
 		profile.setFirstName("First");
 		profile.setLastName("Last");
@@ -68,25 +70,51 @@ public class ITUserInfoRemoval {
 		profile.setOpenIds(Collections.singletonList("OpenID1"));
 
 		client.updateMyProfile(profile);
-
+		profile = client.getMyProfile();
 		// Method under test
-		adminClient.clearUserInformation(userId.toString());
+		adminClient.redactUserInformation(userId.toString());
 
+		int mask = 0xFFFF; // This should get everything
+		// When the admin gets the bundle, it should be the same (except for a few fields)
+		UserBundle unredactedActual = adminClient.getUserBundle(userId, mask);
+		assertEquals(userId.toString(), unredactedActual.getUserId());
+		assertNull(unredactedActual.getORCID());
+		UserProfile unredactedProfile = unredactedActual.getUserProfile();
+		assertEquals(profile.getFirstName(), unredactedProfile.getFirstName());
+		assertEquals(profile.getLastName(), unredactedProfile.getLastName());
+		assertEquals(profile.getOpenIds(), unredactedProfile.getOpenIds());
+		assertEquals(profile.getEmail(), unredactedProfile.getEmail());
+		assertEquals(profile.getEmails(), unredactedProfile.getEmails());
+		assertEquals(profile.getUserName(), unredactedProfile.getUserName());
+		assertEquals(profile.getUrl(), unredactedProfile.getUrl());
+		assertEquals(profile.getRStudioUrl(), unredactedProfile.getRStudioUrl());
+		assertEquals(profile.getDisplayName(), unredactedProfile.getDisplayName());
+		assertEquals(profile.getLocation(), unredactedProfile.getLocation());
+		assertEquals(profile.getProfilePicureFileHandleId(), unredactedProfile.getProfilePicureFileHandleId());
+		assertEquals(profile.getIndustry(), unredactedProfile.getIndustry());
+		assertEquals(profile.getCompany(), unredactedProfile.getCompany());
+		assertEquals(profile.getSummary(), unredactedProfile.getSummary());
+		assertTrue(unredactedActual.getUserProfile().getIsRedacted());
+		assertFalse(unredactedActual.getUserProfile().getNotificationSettings().getSendEmailNotifications());
+
+		// When another user (including the owner) gets the info, it should be redacted
+		UserBundle redactedActual = client.getMyOwnUserBundle(mask);
+		UserProfile redactedProfile = redactedActual.getUserProfile();
 		String expectedEmail = "gdpr-synapse+" + userId.toString() + "@sagebase.org";
-
-		UserProfile clearedProfile = adminClient.getUserProfile(userId.toString());
-		assertEquals(expectedEmail, clearedProfile.getEmail());
-		assertEquals("", clearedProfile.getFirstName());
-		assertEquals("", clearedProfile.getLastName());
-		assertEquals(userId.toString(), clearedProfile.getUserName());
-		assertEquals(Collections.emptyList(), clearedProfile.getOpenIds());
-		assertFalse(clearedProfile.getNotificationSettings().getSendEmailNotifications());
-		Assertions.assertNull(clearedProfile.getDisplayName());
-		Assertions.assertNull(clearedProfile.getIndustry());
-		Assertions.assertNull(clearedProfile.getProfilePicureFileHandleId());
-		Assertions.assertNull(clearedProfile.getLocation());
-		Assertions.assertNull(clearedProfile.getCompany());
-		Assertions.assertNull(clearedProfile.getPosition());
+		assertNull(redactedActual.getORCID());
+		assertEquals(expectedEmail, redactedProfile.getEmail());
+		assertNull(redactedProfile.getFirstName());
+		assertNull(redactedProfile.getLastName());
+		assertEquals(userId.toString(), redactedProfile.getUserName());
+		assertEquals(Collections.emptyList(), redactedProfile.getOpenIds());
+		assertFalse(redactedProfile.getNotificationSettings().getSendEmailNotifications());
+		Assertions.assertNull(redactedProfile.getDisplayName());
+		Assertions.assertNull(redactedProfile.getIndustry());
+		Assertions.assertNull(redactedProfile.getProfilePicureFileHandleId());
+		Assertions.assertNull(redactedProfile.getLocation());
+		Assertions.assertNull(redactedProfile.getCompany());
+		Assertions.assertNull(redactedProfile.getPosition());
+		Assertions.assertTrue(redactedProfile.getIsRedacted());
 
 
 		// Verify we cannot log in with the old username, user ID, or email address (the password should be changed)
