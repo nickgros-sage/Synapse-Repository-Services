@@ -268,6 +268,7 @@ public class DBOUserProfileDAOImplTest {
 			userProfiles.add(userProfile);
 			userProfile.setNotificationSettings(new Settings());
 			userProfile.getNotificationSettings().setSendEmailNotifications(true);
+			userProfile.setIsRedacted(false);
 			// Create it
 			String id = userProfileDAO.create(userProfile);
 			assertNotNull(id);

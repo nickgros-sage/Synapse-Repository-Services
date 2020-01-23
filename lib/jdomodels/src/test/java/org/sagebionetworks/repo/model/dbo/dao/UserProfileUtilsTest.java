@@ -34,7 +34,8 @@ public class UserProfileUtilsTest {
 		dto.setProfilePicureFileHandleId("456");
 		dto.setNotificationSettings(new Settings());
 		dto.getNotificationSettings().setSendEmailNotifications(false);
-		
+		dto.setIsRedacted(false);
+
 		DBOUserProfile dbo = new DBOUserProfile();
 		UserProfileUtils.copyDtoToDbo(dto, dbo);
 		assertEquals(new Long(456),dbo.getPictureId());
@@ -72,6 +73,9 @@ public class UserProfileUtilsTest {
 		// default to send email.
 		assertTrue(dto2.getNotificationSettings().getSendEmailNotifications());
 		dto2.setNotificationSettings(null);
+		// Redaction status should be added
+		assertNotNull(dto2.getIsRedacted());
+		dto2.setIsRedacted(null);
 		assertEquals(dto, dto2);
 	}
 	
