@@ -1,5 +1,6 @@
 package org.sagebionetworks.repo.manager.principal;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -253,7 +254,11 @@ public class PrincipalManagerImpl implements PrincipalManager {
 		// Add the GDPR email to the profile
 		UserProfile profile = userProfileDAO.get(principalToRedact.toString());
 		String gdprEmail = "gdpr-synapse+" + principalToRedact + "@sagebase.org";
-		profile.getEmails().add(0, gdprEmail);
+		if (profile.getEmails() == null) {
+			profile.setEmails(Collections.singletonList(gdprEmail));
+		} else {
+			profile.getEmails().add(0, gdprEmail);
+		}
 
 		PrincipalAlias emailAlias = new PrincipalAlias();
 		emailAlias.setPrincipalId(principalToRedact);
