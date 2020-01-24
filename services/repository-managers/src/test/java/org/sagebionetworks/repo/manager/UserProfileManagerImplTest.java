@@ -123,6 +123,7 @@ public class UserProfileManagerImplTest {
 			Settings settings = new Settings();
 			settings.setSendEmailNotifications(true);
 			profile.setNotificationSettings(settings);
+			profile.setIsRedacted(false);
 			// Create the profile
 			created = this.userProfileManager.createUserProfile(profile);
 			// the changed fields are etag and emails (which are ignored)

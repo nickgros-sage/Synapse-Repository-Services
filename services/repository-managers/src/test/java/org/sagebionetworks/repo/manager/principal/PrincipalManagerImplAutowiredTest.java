@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -102,7 +102,7 @@ public class PrincipalManagerImplAutowiredTest {
 
 
 	@Test
-	public void testClearPrincipal() {
+	public void testRedactPrincipal() {
 		String username = UUID.randomUUID().toString();
 
 		// Add some aliases to make sure they get removed
@@ -132,9 +132,13 @@ public class PrincipalManagerImplAutowiredTest {
 		profile.setLastName("Last");
 		profile.setPosition("Job");
 		profile.setCompany("Organization");
-		profile.setEmails(Collections.singletonList("email1@gmail.com"));
+		List<String> emails = new ArrayList<>();
+		emails.add("emailAddress@website.net");
+		profile.setEmails(emails);
 		profile.setLocation("Seattle");
-		profile.setOpenIds(Collections.singletonList("OpenID1"));
+		List<String> openIds = new ArrayList<>();
+		openIds.add("Open ID 1");
+		profile.setOpenIds(openIds);
 		profile.setProfilePicureFileHandleId(fileHandleId);
 		profile.setIsRedacted(false);
 		Settings notificationSettings = new Settings();
@@ -146,6 +150,10 @@ public class PrincipalManagerImplAutowiredTest {
 
 		// Call under test
 		principalManager.redactPrincipalInformation(adminUserInfo, testUser.getId());
+
+		// We expect that the GDPR email address is added to the profile.
+		emails.add(0, "gdpr-synapse+" + testUser.getId().toString() + "@sagebase.org");
+		profile.setEmails(emails);
 
 		// Verify fields
 		UserProfile redactedProfile = userProfileDAO.get(testUser.getId().toString());

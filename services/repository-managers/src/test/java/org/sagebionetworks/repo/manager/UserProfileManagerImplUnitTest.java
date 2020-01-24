@@ -123,6 +123,7 @@ public class UserProfileManagerImplUnitTest {
 		userProfile.setLocation("I'm guessing this is private");
 		userProfile.setOpenIds(Collections.singletonList(USER_OPEN_ID));
 		userProfile.setEmails(Collections.singletonList(USER_EMAIL));
+		userProfile.setIsRedacted(false);
 		Settings settings = new Settings();
 		settings.setSendEmailNotifications(true);
 		userProfile.setNotificationSettings(settings);

@@ -14,6 +14,7 @@ import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PRO
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PROFILE_LAST_NAME;
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PROFILE_PICTURE_ID;
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PROFILE_PROPS_BLOB;
+import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.COL_USER_PROFILE_REDACTED;
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.LIMIT_PARAM_NAME;
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.OFFSET_PARAM_NAME;
 import static org.sagebionetworks.repo.model.query.jdo.SqlConstants.TABLE_NOTIFICATION_EMAIL;
@@ -101,6 +102,7 @@ public class DBOUserProfileDAOImpl implements UserProfileDAO {
 			if(blob != null){
 				up.setProperties(blob.getBytes(1, (int) blob.length()));
 			}
+			up.setRedacted(rs.getBoolean(COL_USER_PROFILE_REDACTED));
 			up.seteTag(rs.getString(COL_USER_PROFILE_ETAG));
 			up.setPictureId(rs.getLong(COL_USER_PROFILE_PICTURE_ID));
 			if(rs.wasNull()){
