@@ -16,8 +16,10 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -656,22 +658,35 @@ public class PrincipalManagerImplUnitTest {
 		expectedEmailAlias.setAlias(expectedEmail);
 		expectedEmailAlias.setType(AliasType.USER_EMAIL);
 
+		UserProfile unredactedProfile = new UserProfile();
+		List<String> emails = new ArrayList<>();
+		emails.add("someCurrentEmail");
+		unredactedProfile.setEmails(emails);
+		unredactedProfile.setIsRedacted(false);
+		Settings notificationSettings = new Settings();
+		notificationSettings.setSendEmailNotifications(true);
+		unredactedProfile.setNotificationSettings(notificationSettings);
+
 		UserProfile expectedProfile = new UserProfile();
 		expectedProfile.setIsRedacted(true);
-		Settings notificationSettings = new Settings();
+		notificationSettings = new Settings();
 		notificationSettings.setSendEmailNotifications(false);
 		expectedProfile.setNotificationSettings(notificationSettings);
+
 
 		when(mockPrincipalAliasDAO.removeAllAliasFromPrincipal(USER_ID)).thenReturn(true);
 		when(mockPrincipalAliasDAO.bindAliasToPrincipal(expectedEmailAlias)).thenReturn(expectedEmailAlias);
 		doNothing().when(mockNotificationEmailDao).update(expectedEmailAlias);
-		when(mockUserProfileDAO.get(USER_ID.toString())).thenReturn(new UserProfile());
-		when(mockUserProfileDAO.update(expectedProfile)).thenReturn(expectedProfile);
+		when(mockUserProfileDAO.get(USER_ID.toString())).thenReturn(unredactedProfile);
+		when(mockUserProfileDAO.update(unredactedProfile)).thenReturn(expectedProfile);
 		doNothing().when(mockAuthManager).setPassword(eq(USER_ID), anyString());
 
 		// Method under test
 		manager.redactPrincipalInformation(adminUserInfo, USER_ID);
 
+		// A GDPR email should be appended to the beginning
+		assertEquals(2, unredactedProfile.getEmails().size());
+		assertEquals("gdpr-synapse+" + USER_ID.toString() + "@sagebase.org", unredactedProfile.getEmails().get(0));
 
 		verify(mockPrincipalAliasDAO).removeAllAliasFromPrincipal(USER_ID);
 		verify(mockPrincipalAliasDAO).bindAliasToPrincipal(expectedEmailAlias);
