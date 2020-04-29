@@ -82,6 +82,8 @@ public class DataciteClientImpl implements DataciteClient {
 	@Override
 	public void registerMetadata(final DataciteMetadata metadata, final String doiUri)
 			throws IllegalArgumentException, NotFoundException, ServiceUnavailableException, NotReadyException {
+		System.out.println(doiUri);
+		System.out.println(DATACITE_URL);
 		SimpleHttpRequest request = createRequest("metadata/", doiUri, "application/xml;charset=UTF-8");
 		SimpleHttpResponse response = null;
 		try {
@@ -97,6 +99,8 @@ public class DataciteClientImpl implements DataciteClient {
 	@Override
 	public void registerDoi(final String doiUri, final String url)
 			throws IllegalArgumentException, NotFoundException, ServiceUnavailableException, NotReadyException {
+		System.out.println(doiUri);
+		System.out.println(DATACITE_URL);
 		// Construct request to register the DOI and send it out
 		SimpleHttpRequest request = createRequest("doi/", doiUri, "text/plain;charset=UTF-8");
 		String content = registerDoiRequestBody(doiUri, url);
